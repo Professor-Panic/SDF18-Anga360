@@ -15,6 +15,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: path => path.replace(/^\/opensky-api/, ""),
       },
+      "/currency-convert": {
+        target: "https://api.frankfurter.dev/v2/rate",
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/currency-convert/, ""),
+      },
     },
   },
 });
