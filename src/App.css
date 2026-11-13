@@ -1,0 +1,23 @@
+/* Base styles for the app shell. Page-specific styles live next to their pages. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: #f3f5fa;
+  color: #131d3a;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+:focus-visible {
+  outline: 3px solid #1d5bd2;
+  outline-offset: 2px;
+}
+.app-placeholder {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 48px 20px;
+}

@@ -1,0 +1,163 @@
+// Mock data so the pages work before the backend exists.
+// Replace with API calls when the trips endpoints are ready.
+
+import { DEFAULT_ALLOWANCES } from "../utils/constants";
+
+export const INITIAL_TRIPS = [
+  {
+    id: "trip-ba65",
+    flightNumber: "BA 65",
+    origin: { city: "London", code: "LHR" },
+    destination: { city: "Nairobi", code: "NBO" },
+    date: "2026-12-20",
+    status: "in_air",
+    role: "picker-upper",
+    departureTime: "22:10",
+    scheduledArrival: "06:40",
+    estimatedArrival: "06:40",
+    landedAt: null,
+    estimatedAtGate: null,
+    inviteCode: "K7F-3QX",
+    traveller: { name: "Amina Otieno" },
+    allowances: DEFAULT_ALLOWANCES,
+    imOut: false,
+    imOutAt: null,
+    people: [],
+    updates: [
+      { time: "04:12", title: "In the air", text: "BA 65 has departed London." },
+      { time: "03:50", title: "Linked", text: "You joined Amina’s trip as picker-upper." },
+    ],
+  },
+  {
+    id: "trip-kq101",
+    flightNumber: "KQ 101",
+    origin: { city: "Dubai", code: "DXB" },
+    destination: { city: "Nairobi", code: "NBO" },
+    date: "2026-12-20",
+    status: "landed",
+    role: "driver",
+    departureTime: "09:30",
+    scheduledArrival: "14:15",
+    estimatedArrival: "14:15",
+    landedAt: "14:08",
+    estimatedAtGate: "14:16",
+    inviteCode: "D5N-6TA",
+    traveller: { name: "Samuel Mwangi" },
+    allowances: DEFAULT_ALLOWANCES,
+    imOut: false,
+    imOutAt: null,
+    people: [],
+    updates: [
+      { time: "14:08", title: "Landed", text: "KQ 101 has landed in Nairobi." },
+      { time: "09:35", title: "In the air", text: "KQ 101 has departed Dubai." },
+      { time: "08:20", title: "Linked", text: "You joined Samuel’s trip as driver." },
+    ],
+  },
+  {
+    id: "trip-kq100",
+    flightNumber: "KQ 100",
+    origin: { city: "Nairobi", code: "NBO" },
+    destination: { city: "London", code: "LHR" },
+    date: "2026-12-14",
+    status: "not_departed",
+    role: "traveller",
+    departureTime: "09:15",
+    scheduledArrival: "15:05",
+    estimatedArrival: "15:05",
+    landedAt: null,
+    estimatedAtGate: null,
+    inviteCode: "R8C-4WM",
+    traveller: { name: "Amina Otieno" },
+    allowances: DEFAULT_ALLOWANCES,
+    imOut: false,
+    imOutAt: null,
+    people: [
+      { name: "Amina Otieno", role: "traveller", status: "you" },
+      { name: "Grace Wanjiru", role: "picker-upper", status: "linked" },
+      { name: "Peter Kamau", role: "driver", status: "linked" },
+    ],
+    updates: [
+      { time: "18:30", title: "Linked", text: "Grace Wanjiru joined as picker-upper." },
+      { time: "18:05", title: "Trip created", text: "You created a trip for KQ 100." },
+    ],
+  },
+  {
+    id: "trip-et308",
+    flightNumber: "ET 308",
+    origin: { city: "Addis Ababa", code: "ADD" },
+    destination: { city: "Nairobi", code: "NBO" },
+    date: "2026-12-20",
+    status: "landed",
+    role: "traveller",
+    departureTime: "05:10",
+    scheduledArrival: "06:40",
+    estimatedArrival: "06:40",
+    landedAt: "06:34",
+    estimatedAtGate: "06:41",
+    inviteCode: "W3Y-7HB",
+    traveller: { name: "Amina Otieno" },
+    allowances: DEFAULT_ALLOWANCES,
+    imOut: false,
+    imOutAt: null,
+    people: [
+      { name: "Amina Otieno", role: "traveller", status: "you" },
+      { name: "Grace Wanjiru", role: "picker-upper", status: "linked" },
+      { name: "Peter Kamau", role: "driver", status: "pending" },
+    ],
+    updates: [
+      { time: "06:34", title: "Landed", text: "ET 308 has landed in Nairobi." },
+      { time: "05:16", title: "In the air", text: "ET 308 has departed Addis Ababa." },
+    ],
+  },
+];
+
+// Codes a user can type into "Join with code" while there is no backend.
+export const JOINABLE_TRIPS = {
+  "H2R-8WN": {
+    id: "trip-kq414",
+    flightNumber: "KQ 414",
+    origin: { city: "Johannesburg", code: "JNB" },
+    destination: { city: "Nairobi", code: "NBO" },
+    date: "2026-12-22",
+    status: "in_air",
+    role: "picker-upper",
+    departureTime: "10:20",
+    scheduledArrival: "15:30",
+    estimatedArrival: "15:40",
+    landedAt: null,
+    estimatedAtGate: null,
+    inviteCode: "H2R-8WN",
+    traveller: { name: "Brian Kiptoo" },
+    allowances: DEFAULT_ALLOWANCES,
+    imOut: false,
+    imOutAt: null,
+    people: [],
+    updates: [
+      { time: "10:26", title: "In the air", text: "KQ 414 has departed Johannesburg." },
+      { time: "10:05", title: "Linked", text: "You joined Brian’s trip as picker-upper." },
+    ],
+  },
+};
+
+// Route and times the "Create a trip" form can fill in from a flight number.
+// Unknown flights are created with "Route to be confirmed" until the backend can look them up.
+export const FLIGHT_LOOKUP = {
+  BA65: {
+    origin: { city: "London", code: "LHR" },
+    destination: { city: "Nairobi", code: "NBO" },
+    departureTime: "22:10",
+    scheduledArrival: "06:40",
+  },
+  KQ100: {
+    origin: { city: "Nairobi", code: "NBO" },
+    destination: { city: "London", code: "LHR" },
+    departureTime: "09:15",
+    scheduledArrival: "15:05",
+  },
+  KQ101: {
+    origin: { city: "Dubai", code: "DXB" },
+    destination: { city: "Nairobi", code: "NBO" },
+    departureTime: "09:30",
+    scheduledArrival: "14:15",
+  },
+};
