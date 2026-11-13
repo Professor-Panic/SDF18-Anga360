@@ -60,8 +60,7 @@ function RegisterPage() {
     <AuthLayout activeTab="register">
       <h1 className="auth-title">Create your account</h1>
       <p className="auth-subtitle">
-        Accounts let you save flights and revisit recent searches. Searching
-        never needs one.
+        Accounts let you save flights and revisit recent searches..
       </p>
 
       <form onSubmit={handleSubmit} noValidate>
