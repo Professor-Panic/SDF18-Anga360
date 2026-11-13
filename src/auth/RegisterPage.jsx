@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import "./auth.css";
+import AuthLayout from "./AuthLayout";
 
 function RegisterPage() {
   const navigate = useNavigate();
@@ -57,80 +57,78 @@ function RegisterPage() {
   }
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <h1 className="auth-title">Create your account</h1>
-        <p className="auth-subtitle">
-          Accounts let you save flights and revisit recent searches. Searching
-          never needs one.
+    <AuthLayout activeTab="register">
+      <h1 className="auth-title">Create your account</h1>
+      <p className="auth-subtitle">
+        Accounts let you save flights and revisit recent searches. Searching
+        never needs one.
+      </p>
+
+      <form onSubmit={handleSubmit} noValidate>
+        <label className="auth-label" htmlFor="fullName">
+          Full name
+        </label>
+        <input
+          className="auth-input"
+          id="fullName"
+          type="text"
+          placeholder="John Doe"
+          value={fullName}
+          onChange={(event) => setFullName(event.target.value)}
+        />
+        {fullNameError && <p className="auth-error">{fullNameError}</p>}
+
+        <label className="auth-label" htmlFor="email">
+          Email
+        </label>
+        <input
+          className="auth-input"
+          id="email"
+          type="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+        />
+        {emailError && <p className="auth-error">{emailError}</p>}
+
+        <label className="auth-label" htmlFor="password">
+          Password
+        </label>
+        <input
+          className="auth-input"
+          id="password"
+          type="password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+        />
+        {passwordError && <p className="auth-error">{passwordError}</p>}
+        <p className="auth-hint">
+          Enter a password with at least 8 characters, including a number and a special character.
         </p>
 
-        <form onSubmit={handleSubmit} noValidate>
-          <label className="auth-label" htmlFor="fullName">
-            Full name
-          </label>
+        <div className="auth-checkbox-row">
           <input
-            className="auth-input"
-            id="fullName"
-            type="text"
-            placeholder="Amina Otieno"
-            value={fullName}
-            onChange={(event) => setFullName(event.target.value)}
+            id="privacy"
+            type="checkbox"
+            checked={acceptedPrivacy}
+            onChange={(event) => setAcceptedPrivacy(event.target.checked)}
           />
-          {fullNameError && <p className="auth-error">{fullNameError}</p>}
-
-          <label className="auth-label" htmlFor="email">
-            Email
+          <label htmlFor="privacy">
+            I have read the privacy notice explaining what personal information
+            Anga360 collects and why.
           </label>
-          <input
-            className="auth-input"
-            id="email"
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-          />
-          {emailError && <p className="auth-error">{emailError}</p>}
+        </div>
+        {privacyError && <p className="auth-error">{privacyError}</p>}
 
-          <label className="auth-label" htmlFor="password">
-            Password
-          </label>
-          <input
-            className="auth-input"
-            id="password"
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-          />
-          {passwordError && <p className="auth-error">{passwordError}</p>}
-          <p className="auth-hint">
-            Enter a password with at least 8 characters.
-          </p>
+        <button className="auth-button" type="submit">
+          Create account
+        </button>
+      </form>
 
-          <div className="auth-checkbox-row">
-            <input
-              id="privacy"
-              type="checkbox"
-              checked={acceptedPrivacy}
-              onChange={(event) => setAcceptedPrivacy(event.target.checked)}
-            />
-            <label htmlFor="privacy">
-              I have read the privacy notice explaining what personal
-              information Anga360 collects and why.
-            </label>
-          </div>
-          {privacyError && <p className="auth-error">{privacyError}</p>}
-
-          <button className="auth-button" type="submit">
-            Create account
-          </button>
-        </form>
-
-        <p className="auth-footer">
-          Already registered? <Link to="/login">Log in</Link>
-        </p>
-      </div>
-    </div>
+      <p className="auth-footer">
+        Already registered? <Link to="/">Log in</Link>
+      </p>
+    </AuthLayout>
   );
 }
 

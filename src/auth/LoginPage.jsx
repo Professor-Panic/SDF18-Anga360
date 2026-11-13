@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import "./auth.css";
+import AuthLayout from "./AuthLayout";
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -38,49 +38,47 @@ function LoginPage() {
   }
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <h1 className="auth-title">Welcome back</h1>
-        <p className="auth-subtitle">
-          Log in to see your saved flights and recent searches.
-        </p>
+    <AuthLayout activeTab="login">
+      <h1 className="auth-title">Welcome back</h1>
+      <p className="auth-subtitle">
+        Log in to see your saved flights and linked trips.
+      </p>
 
-        <form onSubmit={handleSubmit} noValidate>
-          <label className="auth-label" htmlFor="email">
-            Email
-          </label>
-          <input
-            className="auth-input"
-            id="email"
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-          />
-          {emailError && <p className="auth-error">{emailError}</p>}
+      <form onSubmit={handleSubmit} noValidate>
+        <label className="auth-label" htmlFor="email">
+          Email
+        </label>
+        <input
+          className="auth-input"
+          id="email"
+          type="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+        />
+        {emailError && <p className="auth-error">{emailError}</p>}
 
-          <label className="auth-label" htmlFor="password">
-            Password
-          </label>
-          <input
-            className="auth-input"
-            id="password"
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-          />
-          {passwordError && <p className="auth-error">{passwordError}</p>}
+        <label className="auth-label" htmlFor="password">
+          Password
+        </label>
+        <input
+          className="auth-input"
+          id="password"
+          type="password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+        />
+        {passwordError && <p className="auth-error">{passwordError}</p>}
 
-          <button className="auth-button" type="submit">
-            Log in
-          </button>
-        </form>
+        <button className="auth-button" type="submit">
+          Log in
+        </button>
+      </form>
 
-        <p className="auth-footer">
-          New to Anga360? <Link to="/register">Create an account</Link>
-        </p>
-      </div>
-    </div>
+      <p className="auth-footer">
+        New to Anga360? <Link to="/register">Create an account</Link>
+      </p>
+    </AuthLayout>
   );
 }
 
