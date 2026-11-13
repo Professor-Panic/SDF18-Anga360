@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import AuthLayout from "./AuthLayout";
 
 function LoginPage() {
@@ -40,6 +41,7 @@ function LoginPage() {
   return (
     <AuthLayout activeTab="login">
       <h1 className="auth-title">Welcome back</h1>
+
       <p className="auth-subtitle">
         Log in to see your saved flights and linked trips.
       </p>
@@ -48,6 +50,7 @@ function LoginPage() {
         <label className="auth-label" htmlFor="email">
           Email
         </label>
+
         <input
           className="auth-input"
           id="email"
@@ -56,11 +59,13 @@ function LoginPage() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
         />
+
         {emailError && <p className="auth-error">{emailError}</p>}
 
         <label className="auth-label" htmlFor="password">
           Password
         </label>
+
         <input
           className="auth-input"
           id="password"
@@ -68,6 +73,7 @@ function LoginPage() {
           value={password}
           onChange={(event) => setPassword(event.target.value)}
         />
+
         {passwordError && <p className="auth-error">{passwordError}</p>}
 
         <button className="auth-button" type="submit">
@@ -76,10 +82,15 @@ function LoginPage() {
       </form>
 
       <p className="auth-footer">
-        New to Anga360? <Link to="/register">Create an account</Link>
+        New to Anga360?{" "}
+        <button
+          type="button"
+          onClick={() => navigate("/register")}
+        >
+          Create an account
+        </button>
       </p>
     </AuthLayout>
   );
 }
-
 export default LoginPage;
