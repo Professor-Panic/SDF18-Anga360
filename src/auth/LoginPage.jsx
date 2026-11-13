@@ -70,7 +70,7 @@ function LoginPage() {
         />
         {passwordError && <p className="auth-error">{passwordError}</p>}
 
-        <button className="auth-button" type="submit">
+        <button className="auth-button" type="submit" onSubmit={<Link to="/home"></Link>}>
           Log in
         </button>
       </form>

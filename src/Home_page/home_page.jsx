@@ -1,4 +1,5 @@
 
+import { Link } from "react-router-dom";
 import "./homepage.css"
 const cabinOptions = [
     { value: "economy", label: "Economy" },
@@ -59,8 +60,8 @@ export function HomePage() {
                 </div>
 
                 <div className="homepage-registration">
-                    <button className="button-login">Login</button>
-                    <button className="button-signup">Sign up</button>
+                    <button className="button-login" onSubmit={<Link to="/login"/>}>Login</button>
+                    <button className="button-signup" onSubmit={<Link to="/register"/>}>Sign up</button>
                 </div>
 
             </div>
