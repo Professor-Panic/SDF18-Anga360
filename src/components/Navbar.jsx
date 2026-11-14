@@ -1,34 +1,69 @@
-import { Link, NavLink } from "react-router-dom";
-import "./Navbar.css";
+import { Link, NavLink, useLocation } from "react-router-dom";
+import "../flight-search-compare/styles/anga360.css";
 
-// Placeholder navbar matching the Figma header. Replace with the team's shared navbar
-// when the Home/search page (SCRUM-6) lands. Only "Linked trips" has a real page for now.
-const LINKS = [
-  { to: "/", label: "Search flights", end: true },
-  { to: "/compare", label: "Compare" },
-  { to: "/saved", label: "Saved flights" },
-  { to: "/linked-trips", label: "Linked trips" },
-];
+export default function Navbar({
+  compareCount = 0,
+  savedCount = 0,
+  onNavigate, // optional: runs on every nav click (used for the jet sound)
+}) {
+  const { pathname } = useLocation();
 
-export default function Navbar() {
+  const itemClass = (isActive) => `nav-item ${isActive ? "active" : ""}`;
+
   return (
     <header className="navbar">
-      <div className="navbar__inner">
-        <Link to="/" className="navbar__brand">
-          <span className="navbar__logo" aria-hidden="true">A</span>
-          Anga360
+      <div className="navbar-left">
+        <Link to="/search" className="brand" onClick={onNavigate}>
+          <img
+            src="/anga360-logo.jpeg"
+            alt="Anga360 Logo"
+            className="brand-logo"
+          />
         </Link>
-        <nav className="navbar__links" aria-label="Main">
-          {LINKS.map((link) => (
-            <NavLink key={link.to} to={link.to} end={link.end}>
-              {link.label}
-            </NavLink>
-          ))}
+      </div>
+
+      <div className="navbar-center">
+        <nav className="nav-links" aria-label="Main">
+          <NavLink
+            to="/search"
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              itemClass(isActive || pathname === "/details")
+            }
+          >
+            Search flights
+          </NavLink>
+          <NavLink
+            to="/compare"
+            onClick={onNavigate}
+            className={({ isActive }) => itemClass(isActive)}
+          >
+            Compare {compareCount > 0 ? `(${compareCount})` : ""}
+          </NavLink>
+          <NavLink
+            to="/saved"
+            onClick={onNavigate}
+            className={({ isActive }) => itemClass(isActive)}
+          >
+            Saved flights {savedCount > 0 ? `(${savedCount})` : ""}
+          </NavLink>
+          <NavLink
+            to="/trips"
+            onClick={onNavigate}
+            className={({ isActive }) => itemClass(isActive)}
+          >
+            Linked trips
+          </NavLink>
         </nav>
-        <div className="navbar__auth">
-          <Link to="/login" className="navbar__btn navbar__btn--outline">Log in</Link>
-          <Link to="/signup" className="navbar__btn navbar__btn--solid">Sign up</Link>
-        </div>
+      </div>
+
+      <div className="navbar-right">
+        <Link to="/login" className="btn btn-secondary">
+          Log in
+        </Link>
+        <Link to="/register" className="btn btn-primary">
+          Sign up
+        </Link>
       </div>
     </header>
   );
