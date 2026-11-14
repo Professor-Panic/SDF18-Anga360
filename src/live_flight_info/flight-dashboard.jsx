@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getAccessToken, getOpenSkyData } from "./opensky";
 
-export default function App() {
+export default function FlightDashboard() {
   const [aircraft, setAircraft] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

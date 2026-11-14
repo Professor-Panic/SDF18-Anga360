@@ -1,0 +1,427 @@
+/* =====================================================
+   GLOBAL
+===================================================== */
+
+html, body, #root {
+    margin: 0;
+    width: 100%;
+    min-height: 100%;
+    font-family: 'Inter', sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* =====================================================
+   HOMEPAGE LAYOUT
+===================================================== */
+
+.class-homepage {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* =====================================================
+   TOP NAVIGATION BAR
+===================================================== */
+
+.class-homepage-top-bar {
+    background-color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    width: 100%;
+    padding: 10px 20px;
+}
+
+/* Logo */
+
+.homepage-start {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.homepage-start p {
+    margin: 0;
+    font-weight: 600;
+}
+
+.homepage-A {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    border: 0;
+    background-color: #1D5FD1;
+    color: white;
+}
+
+.homepage-title {
+    font-size: 20px;
+}
+
+/* Centre navigation */
+
+.homepage-center {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.center-button {
+    font-size: 14px;
+    color: #5B6783;
+    background-color: #FFFFFF;
+    border: 0;
+    width: 120px;
+    height: 35px;
+    cursor: pointer;
+}
+
+/* Registration buttons */
+
+.homepage-registration {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.button-signup {
+    color: white;
+    background-color: #1D5FD1;
+    width: 91px;
+    height: 41px;
+    border-radius: 8px;
+    border: 1px solid white;
+    padding: 12px 20px;
+    cursor: pointer;
+}
+
+.button-login {
+    color: #1D5FD1;
+    background-color: white;
+    width: 91px;
+    height: 41px;
+    border-radius: 8px;
+    padding: 12px 20px;
+    border: 1px solid #DDE3EE;
+    cursor: pointer;
+}
+
+/* =====================================================
+   HERO / MIDDLE AREA
+===================================================== */
+
+.class-homepage-middle-area {
+    background-color: #0F2A6B;
+    width: 100%;
+    flex: 1;
+    gap: 24px;
+    padding: 72px 64px;
+}
+
+.homepage-hero-content {
+    color: white;
+    display: flex;
+    flex-direction: row;
+    font-size: 46px;
+    font-weight: bolder;
+    width: 760px;
+    height: 112px;
+}
+
+.homepage-hero-explanation {
+    color: #E8F0FE;
+    font-size: 18px;
+    width: 700px;
+}
+
+/* =====================================================
+   SEARCH CARD
+===================================================== */
+
+.homepage-search-card {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    min-height: 165px;
+    height: auto;
+    border-radius: 16px;
+    background-color: white;
+    padding: 24px;
+}
+
+/* =====================================================
+   SEARCH CATEGORY
+===================================================== */
+
+.search-category {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.search-filter-button {
+    color: #5B6783;
+    background-color: #F4F6FA;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 100px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.search-filter-button:focus {
+    background-color: #1D5FD1;
+    color: white;
+}
+
+/* =====================================================
+   SEARCH FILTERS LAYOUT
+===================================================== */
+
+.homepage-search-filters {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    align-items: end;
+    gap: 20px;
+    width: 100%;
+}
+
+/* =====================================================
+   INDIVIDUAL FILTER CARDS
+===================================================== */
+
+.homepage-filter-card {
+    width: 100%;
+    min-width: 0;
+}
+
+.homepage-filter-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #293651;
+    margin: 0 0 8px 0;
+}
+
+/* Input container */
+
+.homepage-filter-input-container {
+    width: 100%;
+    height: 44px;
+    border: 1px solid #DDE3EE;
+    border-radius: 8px;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+}
+
+/* Actual inputs and dropdowns */
+
+.homepage-filter-card-input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    outline: none;
+    background-color: transparent;
+    color: #293651;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    min-width: 0;
+}
+
+/* Input focus effect */
+
+.homepage-filter-input-container:focus-within {
+    border-color: #1D5FD1;
+    box-shadow: 0 0 0 2px rgba(29, 95, 209, 0.1);
+}
+
+/* Search button */
+
+.homepage-search-button {
+    background-color: #1D5FD1;
+    color: white;
+    height: 44px;
+    padding: 0 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    border: 0;
+    width: 134px;
+    cursor: pointer;
+}
+
+/* =====================================================
+   WORKINGS SECTION
+===================================================== */
+
+.class-homepage-workings {
+    background-color: #F4F6FA;
+    padding: 56px 64px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    height: 400px;
+}
+
+.homepage-workings-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: bolder;
+    color: #0F2A6B;
+}
+
+.homepage-working-cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    width: 100%;
+}
+
+/* =====================================================
+   INDIVIDUAL WORKING CARDS
+===================================================== */
+
+.homepage-working-card {
+    border-radius: 10px;
+    border: 1px solid #DDE3EE;
+    background-color: white;
+    padding: 18px;
+    height: 188px;
+}
+
+/* Card number */
+
+.homepage-working-card-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1D5FD1;
+    background-color: #E8F0FE;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0 0 14px 0;
+}
+
+/* Card title */
+
+.homepage-working-card-title {
+    margin: 0 0 6px 0;
+    font-weight: bolder;
+    font-size: 15px;
+    color: #0F2A6B;
+}
+
+/* Card explanation */
+
+.homepage-working-card-explanation {
+    margin: 0;
+    font-size: 12px;
+    color: #5B6783;
+    line-height: 1.5;
+}
+
+/* =====================================================
+   FOOTER LAYOUT
+===================================================== */
+
+.homepage-footer {
+    display: flex;
+    flex-direction: column;
+}
+
+.homepage-footer-notice {
+    width: 100%;
+    padding: 14px 64px;
+    background-color: #FEF3C7;
+}
+
+.homepage-footer-privacy {
+    padding: 14px 64px;
+    background-color: #0F2A6B;
+    color: #E8F0FE;
+    font-size: 13px;
+}
+
+.homepage-footer-notice p,
+.homepage-footer-privacy p {
+    margin: 0;
+}
+
+/* =====================================================
+   RESPONSIVE LAYOUT
+===================================================== */
+
+@media (max-width: 1000px) {
+
+    .homepage-center {
+        position: static;
+        transform: none;
+        flex-wrap: wrap;
+    }
+
+    .class-homepage-top-bar {
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .homepage-search-filters {
+        grid-auto-flow: row;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .homepage-working-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+
+    .class-homepage-middle-area {
+        padding: 40px 20px;
+    }
+
+    .homepage-hero-content {
+        width: 100%;
+        height: auto;
+        font-size: 32px;
+    }
+
+    .homepage-hero-explanation {
+        width: 100%;
+        font-size: 16px;
+    }
+
+    .homepage-search-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .homepage-center {
+        gap: 8px;
+    }
+
+    .class-homepage-workings {
+        padding: 40px 20px;
+    }
+
+    .homepage-footer-notice,
+    .homepage-footer-privacy {
+        padding: 14px 20px;
+    }
+}

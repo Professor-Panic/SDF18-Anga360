@@ -1,61 +1,69 @@
+import { Link, NavLink, useLocation } from "react-router-dom";
 import "../flight-search-compare/styles/anga360.css";
 
 export default function Navbar({
-  activeTab,
-  onSwitchTab,
   compareCount = 0,
   savedCount = 0,
+  onNavigate, // optional: runs on every nav click (used for the jet sound)
 }) {
+  const { pathname } = useLocation();
+
+  const itemClass = (isActive) => `nav-item ${isActive ? "active" : ""}`;
+
   return (
     <header className="navbar">
       <div className="navbar-left">
-        <div className="brand" onClick={() => onSwitchTab?.("search")}>
+        <Link to="/search" className="brand" onClick={onNavigate}>
           <img
             src="/anga360-logo.jpeg"
             alt="Anga360 Logo"
             className="brand-logo"
           />
-        </div>
+        </Link>
       </div>
 
       <div className="navbar-center">
-        <nav className="nav-links">
-          <button
-            className={`nav-item ${
-              activeTab === "search" || activeTab === "details" ? "active" : ""
-            }`}
-            onClick={() => onSwitchTab?.("search")}
+        <nav className="nav-links" aria-label="Main">
+          <NavLink
+            to="/search"
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              itemClass(isActive || pathname === "/details")
+            }
           >
             Search flights
-          </button>
-          <button
-            className={`nav-item ${activeTab === "compare" ? "active" : ""}`}
-            onClick={() => onSwitchTab?.("compare")}
+          </NavLink>
+          <NavLink
+            to="/compare"
+            onClick={onNavigate}
+            className={({ isActive }) => itemClass(isActive)}
           >
             Compare {compareCount > 0 ? `(${compareCount})` : ""}
-          </button>
-          <button
-            className={`nav-item ${activeTab === "saved" ? "active" : ""}`}
-            onClick={() => onSwitchTab?.("saved")}
+          </NavLink>
+          <NavLink
+            to="/saved"
+            onClick={onNavigate}
+            className={({ isActive }) => itemClass(isActive)}
           >
             Saved flights {savedCount > 0 ? `(${savedCount})` : ""}
-          </button>
-          <button
-            className={`nav-item ${activeTab === "trips" ? "active" : ""}`}
-            onClick={() => onSwitchTab?.("trips")}
+          </NavLink>
+          <NavLink
+            to="/trips"
+            onClick={onNavigate}
+            className={({ isActive }) => itemClass(isActive)}
           >
             Linked trips
-          </button>
+          </NavLink>
         </nav>
       </div>
 
       <div className="navbar-right">
-        <button className="btn btn-secondary" onClick={() => onSwitchTab?.("login")}>
+        <Link to="/login" className="btn btn-secondary">
           Log in
-        </button>
-        <button className="btn btn-primary" onClick={() => onSwitchTab?.("signup")}>
+        </Link>
+        <Link to="/register" className="btn btn-primary">
           Sign up
-        </button>
+        </Link>
       </div>
     </header>
   );
