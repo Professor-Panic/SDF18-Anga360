@@ -2,7 +2,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import AccessCard from "../components/AccessCard";
 import ArrivalCard from "../components/ArrivalCard";
 import CollectionCard from "../components/CollectionCard";
-import FlightMapPlaceholder from "../components/FlightMapPlaceholder";
+import FlightMap from "../components/FlightMap";
 import FlightProgress from "../components/FlightProgress";
 import InviteCodeCard from "../components/InviteCodeCard";
 import LeaveNowAlert from "../components/LeaveNowAlert";
@@ -95,7 +95,7 @@ export default function TripDetails() {
                   trip={trip}
                   onImOut={() => markOut(trip.id)}
                 />
-                <FlightMapPlaceholder />
+                <FlightMap key={trip.id} trip={trip} />
               </div>
               <div className="tl-stack">
                 <PeopleList people={trip.people ?? []} />
@@ -120,7 +120,7 @@ export default function TripDetails() {
               <div className="tl-stack">
                 <LeaveNowAlert trip={trip} />
                 <UpdatesList updates={trip.updates} />
-                <FlightMapPlaceholder />
+                <FlightMap key={trip.id} trip={trip} />
               </div>
               <div className="tl-stack">
                 <TravellerCard trip={trip} />
@@ -134,7 +134,7 @@ export default function TripDetails() {
               <div className="tl-stack">
                 <ArrivalCard trip={trip} />
                 <UpdatesList updates={trip.updates} />
-                <FlightMapPlaceholder />
+                <FlightMap key={trip.id} trip={trip} />
               </div>
               <div className="tl-stack">
                 <TravellerCard trip={trip} />

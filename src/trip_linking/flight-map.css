@@ -1,0 +1,148 @@
+/* Styles for the live flight map (components/FlightMap.jsx). */
+.tl-card.tl-map-card {
+  background-color: midnightblue;
+  border-color: midnightblue;
+  color: white;
+}
+
+.tl-map-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.tl-map-label {
+  margin: 0;
+  color: lightsteelblue;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.tl-map-title {
+  margin: 4px 0 0;
+  color: white;
+  font-size: 17px;
+}
+
+.tl-map-updated {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background-color: navy;
+  color: lightsteelblue;
+  font-size: 11px;
+}
+
+.tl-map-message {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background-color: navy;
+  color: white;
+  line-height: 1.5;
+}
+
+.tl-map-globe {
+  width: 100%;
+  height: 380px;
+  margin-top: 12px;
+  border-radius: 10px;
+  background-color: black;
+  overflow: hidden;
+}
+
+.tl-map-actions {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.tl-map-button {
+  padding: 9px 14px;
+  border: none;
+  border-radius: 6px;
+  background-color: royalblue;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.tl-map-button:hover {
+  background-color: mediumblue;
+}
+
+.tl-map-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tl-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-bottom: 12px;
+  color: lightsteelblue;
+  font-size: 11px;
+}
+
+.tl-map-legend span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tl-map-swatch {
+  display: block;
+  width: 22px;
+  height: 0;
+  border-top: 3px solid orange;
+}
+
+.tl-map-swatch--dash {
+  border-top: 3px dashed gold;
+}
+
+.tl-map-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.tl-map-stat {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background-color: navy;
+}
+
+.tl-map-stat small {
+  display: block;
+  color: lightsteelblue;
+  font-size: 11px;
+}
+
+.tl-map-stat b {
+  display: block;
+  margin-top: 3px;
+  font-size: 16px;
+}
+
+.tl-map-note {
+  margin: 12px 0 0;
+  color: lightsteelblue;
+  font-size: 11px;
+}
+
+@media (max-width: 700px) {
+  .tl-map-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.tl-map-stat span {
+  display: block;
+  margin-top: 2px;
+  color: lightsteelblue;
+  font-size: 11px;
+}
