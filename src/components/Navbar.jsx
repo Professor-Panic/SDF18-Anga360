@@ -13,7 +13,7 @@ export default function Navbar({
   return (
     <header className="navbar">
       <div className="navbar-left">
-        <Link to="/search" className="brand" onClick={onNavigate}>
+        <Link to="/" className="brand" aria-label="Anga360 home" onClick={onNavigate}>
           <img
             src="/anga360-logo.jpeg"
             alt="Anga360 Logo"
@@ -24,6 +24,14 @@ export default function Navbar({
 
       <div className="navbar-center">
         <nav className="nav-links" aria-label="Main">
+          <NavLink
+            to="/"
+            end
+            onClick={onNavigate}
+            className={({ isActive }) => itemClass(isActive)}
+          >
+            Home
+          </NavLink>
           <NavLink
             to="/search"
             onClick={onNavigate}
@@ -38,7 +46,7 @@ export default function Navbar({
             onClick={onNavigate}
             className={({ isActive }) => itemClass(isActive)}
           >
-            Compare {compareCount > 0 ? `(${compareCount})` : ""}
+            Compare flights {compareCount > 0 ? `(${compareCount})` : ""}
           </NavLink>
           <NavLink
             to="/saved"
@@ -48,7 +56,7 @@ export default function Navbar({
             Saved flights {savedCount > 0 ? `(${savedCount})` : ""}
           </NavLink>
           <NavLink
-            to="/trips"
+            to="/linked-trips"
             onClick={onNavigate}
             className={({ isActive }) => itemClass(isActive)}
           >

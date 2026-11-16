@@ -113,7 +113,7 @@ function AuthLayout({ activeTab, children }) {
       <div className="auth-card">
         <div className="auth-tabs">
           <Link
-            to="/"
+            to="/login"
             className={activeTab === "login" ? "auth-tab auth-tab-active" : "auth-tab"}
           >
             Log in

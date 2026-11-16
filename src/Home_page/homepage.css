@@ -20,102 +20,6 @@ html, body, #root {
 .class-homepage {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
-}
-
-/* =====================================================
-   TOP NAVIGATION BAR
-===================================================== */
-
-.class-homepage-top-bar {
-    background-color: #FFFFFF;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: relative;
-    width: 100%;
-    padding: 10px 20px;
-}
-
-/* Logo */
-
-.homepage-start {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.homepage-start p {
-    margin: 0;
-    font-weight: 600;
-}
-
-.homepage-A {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 30px;
-    border-radius: 10px;
-    border: 0;
-    background-color: #1D5FD1;
-    color: white;
-}
-
-.homepage-title {
-    font-size: 20px;
-}
-
-/* Centre navigation */
-
-.homepage-center {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.center-button {
-    font-size: 14px;
-    color: #5B6783;
-    background-color: #FFFFFF;
-    border: 0;
-    width: 120px;
-    height: 35px;
-    cursor: pointer;
-}
-
-/* Registration buttons */
-
-.homepage-registration {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-left: auto;
-}
-
-.button-signup {
-    color: white;
-    background-color: #1D5FD1;
-    width: 91px;
-    height: 41px;
-    border-radius: 8px;
-    border: 1px solid white;
-    padding: 12px 20px;
-    cursor: pointer;
-}
-
-.button-login {
-    color: #1D5FD1;
-    background-color: white;
-    width: 91px;
-    height: 41px;
-    border-radius: 8px;
-    padding: 12px 20px;
-    border: 1px solid #DDE3EE;
-    cursor: pointer;
 }
 
 /* =====================================================
@@ -338,48 +242,12 @@ html, body, #root {
 }
 
 /* =====================================================
-   FOOTER LAYOUT
-===================================================== */
-
-.homepage-footer {
-    display: flex;
-    flex-direction: column;
-}
-
-.homepage-footer-notice {
-    width: 100%;
-    padding: 14px 64px;
-    background-color: #FEF3C7;
-}
-
-.homepage-footer-privacy {
-    padding: 14px 64px;
-    background-color: #0F2A6B;
-    color: #E8F0FE;
-    font-size: 13px;
-}
-
-.homepage-footer-notice p,
-.homepage-footer-privacy p {
-    margin: 0;
-}
-
-/* =====================================================
    RESPONSIVE LAYOUT
 ===================================================== */
 
 @media (max-width: 1000px) {
 
-    .homepage-center {
-        position: static;
-        transform: none;
-        flex-wrap: wrap;
-    }
 
-    .class-homepage-top-bar {
-        flex-wrap: wrap;
-        gap: 15px;
-    }
 
     .homepage-search-filters {
         grid-auto-flow: row;
@@ -412,16 +280,9 @@ html, body, #root {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .homepage-center {
-        gap: 8px;
-    }
 
     .class-homepage-workings {
         padding: 40px 20px;
     }
 
-    .homepage-footer-notice,
-    .homepage-footer-privacy {
-        padding: 14px 20px;
-    }
 }

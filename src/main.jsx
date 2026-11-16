@@ -19,7 +19,8 @@ import './flight-search-compare/styles/anga360.css';
 
 import LoginPage from './auth/LoginPage.jsx';
 import RegisterPage from './auth/RegisterPage.jsx';
-import TripProvider from './trip_linking/trip-routes.jsx';
+import TripsProvider from './trip_linking/context/TripsProvider.jsx';
+import TripLinkingRoutes from './trip_linking/TripLinkingRoutes.jsx';
 import { HomePage } from './Home_page/home_page.jsx';
 
 function playJetFlybySound() {
@@ -85,11 +86,12 @@ function playJetFlybySound() {
 
 // Old tab names -> URLs, so FlightSearchApp and Footer can keep calling onSwitchTab("compare") etc.
 const TAB_PATHS = {
+  home: '/',
   search: '/search',
   details: '/details',
   compare: '/compare',
   saved: '/saved',
-  trips: '/trips',
+  trips: '/linked-trips',
   live: '/live',
   login: '/login',
   signup: '/register',
@@ -109,7 +111,7 @@ function AppShell() {
   const switchTab = (tab) => {
     const path = TAB_PATHS[tab];
     if (!path) return;
-    playJetFlybySound();
+    {/*playJetFlybySound();*/}
     navigate(path);
   };
 
@@ -155,19 +157,26 @@ createRoot(document.getElementById('root')).render(
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/dashboard" element={<HomePage />} />
-        <Route path="/dashboard/*" element={<TripProvider />} />
 
         <Route element={<AppShell />}>
+          <Route index element={<HomePage />} />
           <Route path="/search" element={<FlightTab tab="search" />} />
           <Route path="/details" element={<FlightTab tab="details" />} />
           <Route path="/compare" element={<FlightTab tab="compare" />} />
           <Route path="/saved" element={<FlightTab tab="saved" />} />
-          <Route path="/trips" element={<FlightTab tab="trips" />} />
+          <Route
+            path="/linked-trips/*"
+            element={
+              <TripsProvider>
+                <TripLinkingRoutes />
+              </TripsProvider>
+            }
+          />
           <Route path="/live" element={<LiveFlightApp />} />
         </Route>
-
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/dashboard/linked-trips/*" element={<Navigate to="/linked-trips" replace />} />
+        <Route path="/trips" element={<Navigate to="/linked-trips" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,

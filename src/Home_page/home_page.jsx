@@ -52,60 +52,6 @@ export function HomePage() {
     return (
         <div className="class-homepage">
 
-            <div className="class-homepage-top-bar">
-
-                <div className="homepage-start">
-                    <button className="homepage-A">A</button>
-                    <p className="homepage-title">Anga 360</p>
-                </div>
-
-                <div className="homepage-center">
-                    <button
-                        className="center-button"
-                        onClick={() => navigate("/dashboard")}
-                    >
-                        Search flights
-                    </button>
-
-                    <button
-                        className="center-button"
-                        onClick={() => navigate("/compare")}
-                    >
-                        Compare flights
-                    </button>
-
-                    <button
-                        className="center-button"
-                        onClick={() => navigate("/saved")}
-                    >
-                        Saved flights
-                    </button>
-
-                    <button
-                        className="center-button"
-                        onClick={() => navigate("/dashboard/linked-trips")}
-                    >
-                        Linked trips
-                    </button>
-                </div>
-
-                <div className="homepage-registration">
-                    <button
-                        className="button-login"
-                        onClick={() => navigate("/login")}
-                    >
-                        Login
-                    </button>
-                    <button
-                        className="button-signup"
-                        onClick={() => navigate("/register")}
-                    >
-                        Sign up
-                    </button>
-                </div>
-
-            </div>
-
             <div className="class-homepage-middle-area">
                 <p className="homepage-hero-content">
                     Find and compare flights in one place
@@ -130,7 +76,7 @@ export function HomePage() {
                         <Filter_Card title="Return" type="date" />
                         <Filter_Card title="Cabin class" options={cabinOptions} />
 
-                        <button className="homepage-search-button">
+                        <button className="homepage-search-button" onClick={() => navigate("/search")}>
                             Search flights
                         </button>
                     </div>
@@ -159,18 +105,6 @@ export function HomePage() {
                         title="Continue"
                         explanation="Open the airline or booking provider to finish your booking. Anga360 does not sell tickets or take payments."
                     />
-                </div>
-            </div>
-
-            <div className="homepage-footer">
-                <div className="homepage-footer-notice">
-                    <p>
-                        Prices and availability can change. Every set of results shows when the search was run.
-                    </p>
-                </div>
-
-                <div className="homepage-footer-privacy">
-                    <p>Anga360 · Flight data from SerpApi Google Flights</p>
                 </div>
             </div>
 
