@@ -11,10 +11,12 @@
   },
   "dependencies": {
     "axios": "^1.21.1",
+    "cesium": "^1.147.0",
     "lucide-react": "^1.72.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "react-router-dom": "^7.18.5"
+    "react-router-dom": "^7.18.5",
+    "vite-plugin-cesium": "^1.2.23"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
