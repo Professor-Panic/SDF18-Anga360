@@ -34,7 +34,7 @@ function LoginPage() {
     }
 
     if (formIsValid) {
-      navigate("/dashboard");
+      navigate("/");
     }
   }
 

@@ -52,7 +52,7 @@ function RegisterPage() {
     }
 
     if (formIsValid) {
-      navigate("/dashboard");
+      navigate("/");
     }
   }
 
@@ -125,7 +125,7 @@ function RegisterPage() {
       </form>
 
       <p className="auth-footer">
-        Already registered? <Link to="/">Log in</Link>
+        Already registered? <Link to="/login">Log in</Link>
       </p>
     </AuthLayout>
   );

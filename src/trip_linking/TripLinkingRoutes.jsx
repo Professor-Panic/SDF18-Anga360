@@ -4,7 +4,7 @@ import LinkedTrips from "./pages/LinkedTrips";
 import TripDetails from "./pages/TripDetails";
 import "./trip-linking.css";
 
-// Mounted in App.jsx at /linked-trips/*, inside <TripsProvider>.
+// Mounted in main.jsx at /linked-trips/*, inside <TripsProvider> and the shared AppShell.
 export default function TripLinkingRoutes() {
   return (
     <Routes>
