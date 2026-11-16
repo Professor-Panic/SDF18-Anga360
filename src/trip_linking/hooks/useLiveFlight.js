@@ -50,32 +50,28 @@ export function useLiveFlight(flightNumber, originCode, destinationCode, enabled
     async function check() {
       try {
         const token = await getAccessToken();
-        const data = await getOpenSkyData(token, box, "states");
-        const rows = Array.isArray(data) ? data : data.states || [];
-
-        // Each row is a list: [1] callsign, [5] longitude, [6] latitude,
-        // [7] altitude in metres, [8] on ground, [9] speed in m/s, [10] heading.
-        const row = rows.find((r) => (r[1] || "").trim() === callsign);
+        const planes = await getOpenSkyData(token, box, "states");
+        const plane = planes.find((p) => p.callsign === callsign);
 
         if (stopped) return;
 
-        if (!row || row[5] === null || row[6] === null) {
+        if (!plane || plane.latitude === null || plane.longitude === null) {
           setStatus("not-found");
           box = routeBox(from, to);
           return;
         }
 
         setLive({
-          lat: row[6],
-          lon: row[5],
-          heading: row[10] || 0,
-          onGround: row[8],
-          altitudeFt: row[7] === null ? null : Math.round(row[7] * 3.281),
-          speedKmh: row[9] === null ? null : Math.round(row[9] * 3.6),
+          lat: plane.latitude,
+          lon: plane.longitude,
+          heading: plane.heading || 0,
+          onGround: plane.onGround,
+          altitudeFt: plane.altitude === null ? null : Math.round(plane.altitude * 3.281),
+          speedKmh: plane.velocity === null ? null : Math.round(plane.velocity * 3.6),
           updatedAt: new Date(),
         });
         setStatus("found");
-        box = boxAround(row[6], row[5]);
+        box = boxAround(plane.latitude, plane.longitude);
       } catch (error) {
         if (!stopped) setStatus("error");
       }
