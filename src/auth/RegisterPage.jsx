@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "./AuthLayout";
+import { useAuth } from "./authContext.js";
 
 function RegisterPage() {
   const navigate = useNavigate();
+  const { signup } = useAuth();
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -14,9 +16,12 @@ function RegisterPage() {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [privacyError, setPrivacyError] = useState("");
+  const [formError, setFormError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+    setFormError("");
 
     let formIsValid = true;
 
@@ -40,6 +45,10 @@ function RegisterPage() {
     if (password === "") {
       setPasswordError("Password is required");
       formIsValid = false;
+    } else if (password.length < 8 || !/\d/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+      // matches the hint under the field; the server only enforces the 8-character minimum
+      setPasswordError("Use at least 8 characters, including a number and a special character");
+      formIsValid = false;
     } else {
       setPasswordError("");
     }
@@ -51,8 +60,17 @@ function RegisterPage() {
       setPrivacyError("");
     }
 
-    if (formIsValid) {
+    if (!formIsValid) return;
+
+    setLoading(true);
+    try {
+      await signup({ fullName: fullName.trim(), email: email.trim(), password });
       navigate("/");
+    } catch (err) {
+      if (err.status === 409) setEmailError(err.message); // email already registered
+      else setFormError(err.message);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -119,8 +137,10 @@ function RegisterPage() {
         </div>
         {privacyError && <p className="auth-error">{privacyError}</p>}
 
-        <button className="auth-button" type="submit">
-          Create account
+        {formError && <p className="auth-error">{formError}</p>}
+
+        <button className="auth-button" type="submit" disabled={loading}>
+          {loading ? "Creating account..." : "Create account"}
         </button>
       </form>
 

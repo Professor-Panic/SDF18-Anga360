@@ -1,12 +1,15 @@
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/authContext.js";
 import "../flight-search-compare/styles/anga360.css";
 
 export default function Navbar({
   compareCount = 0,
   savedCount = 0,
-  onNavigate, // optional: runs on every nav click (used for the jet sound)
+  onNavigate,//(used for the jet sound)
 }) {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const itemClass = (isActive) => `nav-item ${isActive ? "active" : ""}`;
 
@@ -66,12 +69,32 @@ export default function Navbar({
       </div>
 
       <div className="navbar-right">
-        <Link to="/login" className="btn btn-secondary">
-          Log in
-        </Link>
-        <Link to="/register" className="btn btn-primary">
-          Sign up
-        </Link>
+        {user ? (
+          <>
+            <span style={{ fontSize: "14px", color: "#334155" }}>
+              Hi, {(user.full_name || user.email).split(" ")[0]}
+            </span>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => {
+                logout();
+                navigate("/");
+              }}
+            >
+              Log out
+            </button>
+          </>
+        ) : (
+          <>
+            <Link to="/login" className="btn btn-secondary">
+              Log in
+            </Link>
+            <Link to="/register" className="btn btn-primary">
+              Sign up
+            </Link>
+          </>
+        )}
       </div>
     </header>
   );

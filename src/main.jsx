@@ -17,6 +17,9 @@ import LiveFlightApp from './live_flight_info/flight-dashboard.jsx';
 import FlightSearchApp from './flight-search-compare/components/FlightSearchApp.jsx';
 import './flight-search-compare/styles/anga360.css';
 
+import AuthProvider from './auth/AuthProvider.jsx';
+import { useAuth } from './auth/authContext.js';
+import { listSavedFlights, saveFlight, unsaveFlight } from './api/savedFlights.js';
 import LoginPage from './auth/LoginPage.jsx';
 import RegisterPage from './auth/RegisterPage.jsx';
 import TripsProvider from './trip_linking/context/TripsProvider.jsx';
@@ -102,7 +105,43 @@ function AppShell() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [compareList, setCompareList] = useState([]);
-  const [savedIds, setSavedIds] = useState([]);
+  const { user } = useAuth();
+  // Saved flights are kept in the backend; this is the copy the pages read from.
+  const [savedFlights, setSavedFlights] = useState([]);
+
+  useEffect(() => {
+    if (!user) {
+      setSavedFlights([]);
+      return;
+    }
+    let cancelled = false;
+    listSavedFlights().then((result) => {
+      if (!cancelled && result.ok) setSavedFlights(result.data);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
+
+  // Save or un-save. The screen updates straight away and rolls back if the server says no.
+  const toggleSave = async (flight) => {
+    if (!user) {
+      navigate('/login');
+      return { ok: true };
+    }
+    const isSaved = savedFlights.some((f) => f.id === flight.id);
+    setSavedFlights((prev) =>
+      isSaved ? prev.filter((f) => f.id !== flight.id) : [flight, ...prev],
+    );
+
+    const result = isSaved ? await unsaveFlight(flight.id) : await saveFlight(flight);
+    if (!result.ok) {
+      setSavedFlights((prev) =>
+        isSaved ? [flight, ...prev] : prev.filter((f) => f.id !== flight.id),
+      );
+    }
+    return result;
+  };
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -119,13 +158,13 @@ function AppShell() {
     <div className="app-shell">
       <Navbar
         compareCount={compareList.length}
-        savedCount={savedIds.length}
+        savedCount={savedFlights.length}
         onNavigate={playJetFlybySound}
       />
 
       <div className="app-content">
         <Outlet
-          context={{ compareList, setCompareList, savedIds, setSavedIds, switchTab }}
+          context={{ compareList, setCompareList, savedFlights, toggleSave, switchTab }}
         />
       </div>
 
@@ -136,7 +175,7 @@ function AppShell() {
 
 // Each flight route renders the same FlightSearchApp, just with a different activeTab.
 function FlightTab({ tab }) {
-  const { compareList, setCompareList, savedIds, setSavedIds, switchTab } =
+  const { compareList, setCompareList, savedFlights, toggleSave, switchTab } =
     useOutletContext();
 
   return (
@@ -145,14 +184,15 @@ function FlightTab({ tab }) {
       onSwitchTab={switchTab}
       compareList={compareList}
       setCompareList={setCompareList}
-      savedIds={savedIds}
-      setSavedIds={setSavedIds}
+      savedFlights={savedFlights}
+      onToggleSave={toggleSave}
     />
   );
 }
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
+    <AuthProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
@@ -179,5 +219,6 @@ createRoot(document.getElementById('root')).render(
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
+    </AuthProvider>
   </StrictMode>,
 );

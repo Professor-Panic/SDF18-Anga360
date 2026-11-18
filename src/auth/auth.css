@@ -236,3 +236,8 @@
   font-size: 11px;
   color: var(--text-soft);
 }
+
+.auth-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

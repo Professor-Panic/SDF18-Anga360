@@ -1,15 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getAccessToken, getOpenSkyData } from "../../live_flight_info/opensky";
-import { AIRPORTS, flightToCallsign } from "../utils/airports";
+import { AIRPORTS, distanceKm, flightToCallsign } from "../utils/airports";
 
 // Each check costs OpenSky credits, so we only check every 2 minutes.
 const POLL_SECONDS = 120;
 
-// The first search covers the route plus this many degrees of margin.
+// If the route is known, the first search covers it plus this many degrees of margin.
+// If it isn't, the first search covers the whole world (a few credits), after which
+// we only search a small box around the plane (1 credit).
 const ROUTE_MARGIN = 8;
-
-// Once the plane is found we search only a small box around it (cheaper).
 const NEAR_PLANE_BOX = 2;
+
+// "Landed" when the plane disappears (transponder off) below this height, near its destination.
+const LANDING_MAX_FT = 13000;
+const LANDING_MAX_KM = 200;
+const ON_GROUND_NEAR_KM = 30;
 
 function routeBox(from, to) {
   return {
@@ -29,39 +34,95 @@ function boxAround(lat, lon) {
   };
 }
 
-// Looks for one flight on OpenSky and returns where the plane is.
-// Only searches when "enabled" is true (the flight is departed or in the air).
-// status: "idle" | "searching" | "found" | "not-found" | "error"
-export function useLiveFlight(flightNumber, originCode, destinationCode, enabled) {
-  const [live, setLive] = useState(null);
-  const [status, setStatus] = useState("searching");
+// The OpenSky token lasts 30 minutes; reuse it instead of asking every 2 minutes.
+let cachedToken = null;
+async function token() {
+  if (!cachedToken || cachedToken.expires < Date.now()) {
+    cachedToken = { value: await getAccessToken(), expires: Date.now() + 25 * 60 * 1000 };
+  }
+  return cachedToken.value;
+}
 
+// ---- last sighting, kept per trip so a reload (or the plane vanishing) doesn't lose it ----
+
+const seenKey = (tripId) => `anga_seen_${tripId}`;
+
+function loadSeen(tripId) {
+  try {
+    const seen = JSON.parse(localStorage.getItem(seenKey(tripId)));
+    return seen ? { ...seen, updatedAt: new Date(seen.updatedAt) } : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveSeen(tripId, seen) {
+  try {
+    localStorage.setItem(seenKey(tripId), JSON.stringify(seen));
+  } catch {
+    /* storage blocked: we just won't remember it */
+  }
+}
+
+// Where is this flight in its journey?
+//   "in_air" | "landed" | "not_departed" | "unknown" (not visible, and we can't tell why)
+function decidePhase(sample, seen, to) {
+  if (sample) {
+    if (!sample.onGround) return "in_air";
+    const nearDestination = to && distanceKm(sample.lat, sample.lon, to.lat, to.lon) < ON_GROUND_NEAR_KM;
+    return seen?.wasAirborne || nearDestination ? "landed" : "not_departed";
+  }
+  // Planes drop off OpenSky once they land and switch off, so "it was flying, now it's gone
+  // low down near where it was going" counts as landed.
+  if (seen?.wasAirborne && to) {
+    const low = seen.altitudeFt === null || seen.altitudeFt < LANDING_MAX_FT;
+    if (low && distanceKm(seen.lat, seen.lon, to.lat, to.lon) < LANDING_MAX_KM) return "landed";
+  }
+  return "unknown";
+}
+
+// Looks for one flight on OpenSky by its flight number (callsign) and returns where the plane is.
+// Only searches while `enabled` is true (flight day, not landed yet).
+// status: "idle" | "searching" | "found" | "not-found" | "error"
+export function useLiveFlight({ tripId, flightNumber, originCode, destinationCode, enabled }) {
   const from = AIRPORTS[originCode];
   const to = AIRPORTS[destinationCode];
-  const canSearch = Boolean(enabled && flightNumber && from && to);
+  const canSearch = Boolean(enabled && tripId && flightNumber);
+
+  const [live, setLive] = useState(null);
+  const [seen, setSeen] = useState(() => loadSeen(tripId));
+  const [status, setStatus] = useState("searching");
+  const [phase, setPhase] = useState(() => decidePhase(null, loadSeen(tripId), to));
+  const seenRef = useRef(seen);
 
   useEffect(() => {
     if (!canSearch) return;
 
     let stopped = false;
-    let box = routeBox(from, to);
     const callsign = flightToCallsign(flightNumber);
+    const wholeRoute = () => (from && to ? routeBox(from, to) : {}); // {} = the whole world
+    let box = wholeRoute();
 
     async function check() {
       try {
-        const token = await getAccessToken();
-        const planes = await getOpenSkyData(token, box, "states");
-        const plane = planes.find((p) => p.callsign === callsign);
-
+        const planes = await getOpenSkyData(await token(), box, "states");
         if (stopped) return;
 
-        if (!plane || plane.latitude === null || plane.longitude === null) {
+        // If two aircraft share a callsign, prefer the one that is flying.
+        const matches = planes.filter(
+          (p) => p.callsign === callsign && p.latitude !== null && p.longitude !== null
+        );
+        const plane = matches.find((p) => !p.onGround) || matches[0];
+
+        if (!plane) {
+          setLive(null);
           setStatus("not-found");
-          box = routeBox(from, to);
+          setPhase(decidePhase(null, seenRef.current, to));
+          box = wholeRoute();
           return;
         }
 
-        setLive({
+        const sample = {
           lat: plane.latitude,
           lon: plane.longitude,
           heading: plane.heading || 0,
@@ -69,10 +130,20 @@ export function useLiveFlight(flightNumber, originCode, destinationCode, enabled
           altitudeFt: plane.altitude === null ? null : Math.round(plane.altitude * 3.281),
           speedKmh: plane.velocity === null ? null : Math.round(plane.velocity * 3.6),
           updatedAt: new Date(),
-        });
+        };
+        const nextSeen = {
+          ...sample,
+          wasAirborne: Boolean(seenRef.current?.wasAirborne || !sample.onGround),
+        };
+        seenRef.current = nextSeen;
+        saveSeen(tripId, nextSeen);
+
+        setLive(sample);
+        setSeen(nextSeen);
         setStatus("found");
+        setPhase(decidePhase(sample, nextSeen, to));
         box = boxAround(plane.latitude, plane.longitude);
-      } catch (error) {
+      } catch {
         if (!stopped) setStatus("error");
       }
     }
@@ -84,7 +155,9 @@ export function useLiveFlight(flightNumber, originCode, destinationCode, enabled
       stopped = true;
       clearInterval(timer);
     };
-  }, [canSearch, flightNumber, from, to]);
+  }, [canSearch, tripId, flightNumber, from, to]);
 
-  return canSearch ? { live, status } : { live: null, status: "idle" };
+  return canSearch
+    ? { live, lastSeen: seen, status, phase }
+    : { live: null, lastSeen: seen, status: "idle", phase: decidePhase(null, seen, to) };
 }

@@ -2,17 +2,22 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthLayout from "./AuthLayout";
+import { useAuth } from "./authContext.js";
 
 function LoginPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [formError, setFormError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+    setFormError("");
 
     let formIsValid = true;
 
@@ -33,8 +38,16 @@ function LoginPage() {
       setPasswordError("");
     }
 
-    if (formIsValid) {
+    if (!formIsValid) return;
+
+    setLoading(true);
+    try {
+      await login({ email: email.trim(), password });
       navigate("/");
+    } catch (err) {
+      setFormError(err.message);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -76,8 +89,10 @@ function LoginPage() {
 
         {passwordError && <p className="auth-error">{passwordError}</p>}
 
-        <button className="auth-button" type="submit">
-          Log in
+        {formError && <p className="auth-error">{formError}</p>}
+
+        <button className="auth-button" type="submit" disabled={loading}>
+          {loading ? "Logging in..." : "Log in"}
         </button>
       </form>
 

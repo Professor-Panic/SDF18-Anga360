@@ -10,18 +10,10 @@ const STATUS_STYLES = {
 };
 
 export default function PeopleList({ people = [] }) {
-  const participants = PARTICIPANT_ROLES.map((role) => {
-    const person = people.find((item) => item.role === role);
-
-    if (person) {
-      return { ...person, role };
-    }
-
-    return {
-      name: null,
-      role,
-      status: "available",
-    };
+  // Everyone who has joined, plus an empty slot for each role nobody has taken yet.
+  const participants = PARTICIPANT_ROLES.flatMap((role) => {
+    const inRole = people.filter((item) => item.role === role);
+    return inRole.length > 0 ? inRole : [{ name: null, role, status: "available" }];
   });
 
   return (
@@ -37,7 +29,7 @@ export default function PeopleList({ people = [] }) {
           const roleLabel = ROLE_LABELS[person.role] ?? person.role;
 
           return (
-            <li className="tl-person" key={person.role}>
+            <li className="tl-person" key={`${person.role}-${person.user_id ?? person.status}`}>
               <span className="tl-person__avatar" aria-hidden="true">
                 {person.name?.trim()?.[0]?.toUpperCase() ?? "?"}
               </span>

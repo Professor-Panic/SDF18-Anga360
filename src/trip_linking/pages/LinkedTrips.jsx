@@ -4,21 +4,21 @@ import TripCard from "../components/TripCard";
 import { useTrips } from "../context/tripsContext";
 
 export default function LinkedTrips() {
-  const { trips, joinTripByCode } = useTrips();
+  const { trips, loading, joinTripByCode } = useTrips();
   const navigate = useNavigate();
   const codeInput = useRef(null);
   const [code, setCode] = useState("");
-  const [name, setName] = useState("");
-  const [role, setRole] = useState("picker-upper");
   const [error, setError] = useState("");
+  const [joining, setJoining] = useState(false);
 
-  function handleJoin(event) {
+  async function handleJoin(event) {
     event.preventDefault();
-
-    const result = joinTripByCode(code, { name, role });
+    setJoining(true);
+    const result = await joinTripByCode(code);
+    setJoining(false);
 
     if (result.ok) {
-      navigate(`/linked-trips/${result.tripId}?as=${result.role}`);
+      navigate(`/linked-trips/${result.tripId}`);
       return;
     }
 
@@ -55,7 +55,7 @@ export default function LinkedTrips() {
               Have an invite code?
             </h2>
             <p className="tl-card__text">
-              Enter the code a traveller shared with you to join their trip.
+              Enter the code a traveller shared with you to join their trip. You join in the role they invited you for.
             </p>
           </div>
 
@@ -67,10 +67,10 @@ export default function LinkedTrips() {
                 ref={codeInput}
                 type="text"
                 value={code}
-                placeholder="e.g. K7F-3QX"
+                placeholder="e.g. K7F3-QX2M"
                 autoComplete="off"
                 autoCapitalize="characters"
-                maxLength={10}
+                maxLength={12}
                 aria-invalid={error ? "true" : undefined}
                 onChange={(event) => {
                   setCode(event.target.value);
@@ -79,35 +79,8 @@ export default function LinkedTrips() {
               />
             </div>
 
-            <div className="tl-field">
-              <label htmlFor="participant-name">Your name</label>
-              <input
-                id="participant-name"
-                type="text"
-                value={name}
-                placeholder="Enter your name"
-                autoComplete="name"
-                onChange={(event) => {
-                  setName(event.target.value);
-                  setError("");
-                }}
-              />
-            </div>
-
-            <div className="tl-field">
-              <label htmlFor="participant-role">Joining as</label>
-              <select
-                id="participant-role"
-                value={role}
-                onChange={(event) => setRole(event.target.value)}
-              >
-                <option value="picker-upper">Picker-upper</option>
-                <option value="driver">Driver</option>
-              </select>
-            </div>
-
-            <button type="submit" className="tl-btn tl-btn--primary">
-              Join trip
+            <button type="submit" className="tl-btn tl-btn--primary" disabled={joining}>
+              {joining ? "Joining…" : "Join trip"}
             </button>
           </form>
 
@@ -120,7 +93,9 @@ export default function LinkedTrips() {
 
         <h2 className="tl-h2">Your trips ({trips.length})</h2>
 
-        {trips.length === 0 ? (
+        {trips.length === 0 && loading ? (
+          <p className="tl-empty">Loading your trips…</p>
+        ) : trips.length === 0 ? (
           <p className="tl-empty">
             You are not linked to any trips yet. Create a trip, or join one with an invite code.
           </p>

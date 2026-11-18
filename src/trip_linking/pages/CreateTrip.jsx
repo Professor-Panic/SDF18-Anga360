@@ -1,11 +1,30 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import InviteCodeCard from "../components/InviteCodeCard";
+import InviteSection from "../components/InviteSection";
 import { useTrips } from "../context/tripsContext";
 import { FLIGHT_LOOKUP } from "../data/mockTrips";
-import { CURRENT_USER, DEFAULT_ALLOWANCES } from "../utils/constants";
-import { formatDate, nowTime, todayISO } from "../utils/format";
-import { generateInviteCode } from "../utils/inviteCode";
+import { AIRPORTS } from "../utils/airports";
+import { formatDate, todayISO } from "../utils/format";
+
+const AIRPORT_OPTIONS = Object.entries(AIRPORTS).sort((a, b) =>
+  `${a[1].city}${a[0]}`.localeCompare(`${b[1].city}${b[0]}`),
+);
+
+function AirportSelect({ id, label, value, onChange, disabled }) {
+  return (
+    <div className="tl-field">
+      <label htmlFor={id}>{label}</label>
+      <select id={id} value={value} disabled={disabled} onChange={(e) => onChange(e.target.value)}>
+        <option value="">Not sure / skip</option>
+        {AIRPORT_OPTIONS.map(([code, airport]) => (
+          <option key={code} value={code}>
+            {airport.city} ({code}) · {airport.name}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
 
 const FLIGHT_PATTERN = /^([A-Z0-9]{2})\s?(\d{1,4}[A-Z]?)$/;
 
@@ -30,55 +49,64 @@ function validate({ flightNumber, date }) {
 }
 
 export default function CreateTrip() {
-  const { addTrip } = useTrips();
+  const { trips, createTrip, refreshInviteCode } = useTrips();
   const [flightNumber, setFlightNumber] = useState("");
   const [date, setDate] = useState("");
+  const [originCode, setOriginCode] = useState("");
+  const [destinationCode, setDestinationCode] = useState("");
   const [inviteRole, setInviteRole] = useState("picker-upper");
   const [errors, setErrors] = useState({});
-  const [created, setCreated] = useState(null);
+  const [createdId, setCreatedId] = useState(null);
+  // Read from the live list, so the invite card updates when someone joins or the code runs out.
+  const created = trips.find((trip) => trip.id === createdId) ?? null;
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
-  function handleSubmit(event) {
+  // Known flights fill in their airports. Anything else: pick them, or skip and we track by flight number.
+  function handleFlightNumber(value) {
+    setFlightNumber(value);
+    const parsed = parseFlightNumber(value);
+    const known = parsed && FLIGHT_LOOKUP[`${parsed.airline}${parsed.number}`];
+    if (known) {
+      setOriginCode(known.origin.code);
+      setDestinationCode(known.destination.code);
+    }
+  }
+
+  async function handleSubmit(event) {
     event.preventDefault();
     const found = validate({ flightNumber, date });
     setErrors(found);
     if (Object.keys(found).length > 0) return;
 
     const { airline, number } = parseFlightNumber(flightNumber);
-    const display = `${airline} ${number}`;
-    const known = FLIGHT_LOOKUP[`${airline}${number}`];
     const trip = {
-      id: `trip-${Date.now()}`,
-      flightNumber: display,
-      origin: known?.origin ?? { city: "", code: "" },
-      destination: known?.destination ?? { city: "", code: "" },
+      flightNumber: `${airline} ${number}`,
       date,
-      status: "not_departed",
-      role: "traveller",
-      departureTime: known?.departureTime ?? null,
-      scheduledArrival: known?.scheduledArrival ?? null,
-      estimatedArrival: known?.scheduledArrival ?? null,
-      landedAt: null,
-      estimatedAtGate: null,
-      inviteCode: generateInviteCode(),
-      traveller: { name: CURRENT_USER.name },
-      allowances: DEFAULT_ALLOWANCES,
-      imOut: false,
-      imOutAt: null,
-      people: [
-        { name: CURRENT_USER.name, role: "traveller", status: "you" },
-        { name: null, role: inviteRole, status: "pending" },
-      ],
-      updates: [{ time: nowTime(), title: "Trip created", text: `You created a trip for ${display}.` }],
+      origin: { code: originCode },
+      destination: { code: destinationCode },
     };
-    addTrip(trip);
-    setCreated(trip);
+
+    setSubmitting(true);
+    setSubmitError("");
+    const result = await createTrip(trip, inviteRole);
+    setSubmitting(false);
+
+    if (!result.ok) {
+      setSubmitError(result.message);
+      return;
+    }
+    setCreatedId(result.tripId);
   }
 
   function startOver() {
-    setCreated(null);
+    setCreatedId(null);
     setFlightNumber("");
     setDate("");
+    setOriginCode("");
+    setDestinationCode("");
     setErrors({});
+    setSubmitError("");
   }
 
   return (
@@ -112,7 +140,7 @@ export default function CreateTrip() {
                   disabled={Boolean(created)}
                   aria-invalid={errors.flightNumber ? "true" : undefined}
                   aria-describedby={errors.flightNumber ? "flight-number-error" : undefined}
-                  onChange={(e) => setFlightNumber(e.target.value)}
+                  onChange={(e) => handleFlightNumber(e.target.value)}
                 />
                 {errors.flightNumber && (
                   <p id="flight-number-error" className="tl-error">
@@ -139,6 +167,27 @@ export default function CreateTrip() {
                 )}
               </div>
             </div>
+
+            <div className="tl-form-grid">
+              <AirportSelect
+                id="origin-code"
+                label="Departing from (optional)"
+                value={originCode}
+                disabled={Boolean(created)}
+                onChange={setOriginCode}
+              />
+              <AirportSelect
+                id="destination-code"
+                label="Arriving at (optional)"
+                value={destinationCode}
+                disabled={Boolean(created)}
+                onChange={setDestinationCode}
+              />
+            </div>
+            <p className="tl-note">
+              We find the plane on OpenSky using the flight number. Choosing the arrival airport also lets us
+              tell when it has landed.
+            </p>
 
             <fieldset className="tl-fieldset" disabled={Boolean(created)}>
               <legend>Who are you inviting first?</legend>
@@ -167,8 +216,8 @@ export default function CreateTrip() {
             </p>
 
             <div className="tl-actions">
-              <button type="submit" className="tl-btn tl-btn--primary" disabled={Boolean(created)}>
-                Create trip
+              <button type="submit" className="tl-btn tl-btn--primary" disabled={Boolean(created) || submitting}>
+                {submitting ? "Creating…" : "Create trip"}
               </button>
               {created && (
                 <button type="button" className="tl-btn tl-btn--ghost" onClick={startOver}>
@@ -176,6 +225,11 @@ export default function CreateTrip() {
                 </button>
               )}
             </div>
+            {submitError && (
+              <p className="tl-error" role="alert">
+                {submitError}
+              </p>
+            )}
           </form>
 
           <section className="tl-card" aria-labelledby="tl-code-title" aria-live="polite">
@@ -185,10 +239,13 @@ export default function CreateTrip() {
                 <h2 id="tl-code-title" className="tl-card__title tl-card__title--spaced">
                   Share your invite code
                 </h2>
-                <InviteCodeCard
+                <InviteSection
                   large
-                  code={created.inviteCode}
-                  shareText={`Join my Anga360 trip for ${created.flightNumber} on ${formatDate(created.date)}. In Anga360, open Linked trips, choose Join with code and enter ${created.inviteCode}.`}
+                  trip={created}
+                  onRefresh={refreshInviteCode}
+                  shareText={(code) =>
+                    `Join my Anga360 trip for ${created.flightNumber} on ${formatDate(created.date)}. In Anga360, open Linked trips, choose Join with code and enter ${code}.`
+                  }
                 />
                 <p className="tl-card__text">
                   Share this code with a family member, friend or driver. They enter it under Linked trips, then

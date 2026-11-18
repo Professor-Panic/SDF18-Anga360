@@ -30,24 +30,27 @@ html, body, #root {
     background-color: #0F2A6B;
     width: 100%;
     flex: 1;
-    gap: 24px;
     padding: 72px 64px;
 }
 
+/* The heading used to have a fixed height (112px) that two lines of 46px text overflow once
+   line-height is 1.5, so it ran into the paragraph below. Let it size itself and put real
+   space between heading, paragraph and search card. */
 .homepage-hero-content {
     color: white;
-    display: flex;
-    flex-direction: row;
     font-size: 46px;
     font-weight: bolder;
-    width: 760px;
-    height: 112px;
+    line-height: 1.15;
+    max-width: 760px;
+    margin: 0 0 28px 0;
 }
 
 .homepage-hero-explanation {
     color: #E8F0FE;
     font-size: 18px;
-    width: 700px;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 0 0 44px 0;
 }
 
 /* =====================================================
@@ -64,31 +67,6 @@ html, body, #root {
     border-radius: 16px;
     background-color: white;
     padding: 24px;
-}
-
-/* =====================================================
-   SEARCH CATEGORY
-===================================================== */
-
-.search-category {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.search-filter-button {
-    color: #5B6783;
-    background-color: #F4F6FA;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 100px;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-.search-filter-button:focus {
-    background-color: #1D5FD1;
-    color: white;
 }
 
 /* =====================================================
@@ -266,14 +244,13 @@ html, body, #root {
     }
 
     .homepage-hero-content {
-        width: 100%;
-        height: auto;
         font-size: 32px;
+        margin-bottom: 20px;
     }
 
     .homepage-hero-explanation {
-        width: 100%;
         font-size: 16px;
+        margin-bottom: 32px;
     }
 
     .homepage-search-filters {
@@ -285,4 +262,27 @@ html, body, #root {
         padding: 40px 20px;
     }
 
+}
+
+/* ---- search error ---- */
+
+/* optional field: a small "clear" button inside the input */
+.homepage-filter-clear {
+    border: none;
+    background: none;
+    color: #5B6783;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 0 0 6px;
+}
+
+.homepage-filter-clear:hover {
+    color: #0F2A6B;
+}
+
+.homepage-search-error {
+    color: #C0392B;
+    font-size: 14px;
+    margin-top: 12px;
 }

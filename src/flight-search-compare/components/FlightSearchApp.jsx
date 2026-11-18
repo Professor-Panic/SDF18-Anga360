@@ -1,4 +1,8 @@
 import { useEffect, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { searchFlights } from "../../api/flights.js";
+import { providerUrl } from "../../api/airlines.js";
+import { formatKes } from "../../utils/currency.js";
 import "../styles/anga360.css";
 
 function ScrollReveal({ children, delay = 0 }) {
@@ -32,7 +36,98 @@ function ScrollReveal({ children, delay = 0 }) {
   );
 }
 
-const FLIGHTS_DATA = [
+// "ET 305" if we know the number, otherwise just the airline code ("ET").
+const flightLabel = (f) => f.flightNo || f.airlineCode || "";
+
+// 1 when the plane lands the next day (shown as "+1" next to the arrival time).
+function dayShift(dep, arr) {
+  if (!dep || !arr) return 0;
+  const day = (stamp) => Date.parse(`${stamp.slice(0, 10)}T00:00:00Z`);
+  return Math.round((day(arr) - day(dep)) / 86400000);
+}
+
+// One direction of a flight card: times, duration, stops.
+function TripRow({ label, trip }) {
+  const [fromCode, toCode] = (trip.route || "").split(" → ");
+  const shift = dayShift(trip.depStamp, trip.arrStamp);
+  return (
+    <div className="trip-row">
+      {label && <div className="trip-row-label">{label}</div>}
+      <div className="route-row">
+        <div>
+          <div className="time-big">{trip.departure || trip.segments?.[0]?.depTime || "—"}</div>
+          <div className="airport-code">{trip.depCode || fromCode || "—"}</div>
+        </div>
+        <div style={{ textAlign: "center" }}>
+          {trip.duration && <div style={{ fontSize: "12px", color: "#64748b" }}>{trip.duration}</div>}
+          <div className="line-bar" />
+          <div style={{ fontSize: "12px", color: "#64748b" }}>{trip.stops}</div>
+        </div>
+        <div>
+          <div className="time-big">
+            {trip.arrival || trip.segments?.at(-1)?.arrTime || "—"}
+            {shift > 0 && <sup className="day-shift">+{shift}</sup>}
+          </div>
+          <div className="airport-code">{trip.arrCode || toCode || "—"}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// The leg-by-leg timeline on the details page, with the layover notes between legs.
+function SegmentList({ trip }) {
+  const gaps = trip.layoverTexts ?? (trip.layover ? [trip.layover] : []);
+  return (
+    <div className="segments-wrapper">
+      {trip.segments.map((seg, idx) => (
+        <div key={idx}>
+          <div className="segment-block">
+            <div className="airline-chip">{seg.code}</div>
+
+            <div className="segment-timeline">
+              <div className="timeline-point">
+                <span className="timeline-dot" />
+                <span className="seg-time">{seg.depTime}</span>
+                <span className="seg-airport-code">{seg.depCode}</span>
+                <span className="seg-airport-name">{seg.depAirport}</span>
+              </div>
+
+              <div className="timeline-line-row">
+                <span className="timeline-vertical-line" />
+                <span className="seg-flight-meta">{seg.flightInfo}</span>
+              </div>
+
+              <div className="timeline-point">
+                <span className="timeline-dot" />
+                <span className="seg-time">{seg.arrTime}</span>
+                <span className="seg-airport-code">{seg.arrCode}</span>
+                <span className="seg-airport-name">{seg.arrAirport}</span>
+              </div>
+
+              {seg.tags?.length > 0 && (
+                <div className="seg-tags">
+                  {seg.tags.map((tag) => (
+                    <span key={tag} className="spec-pill">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {idx < trip.segments.length - 1 && gaps[idx] && (
+            <div className="layover-banner">{gaps[idx]}</div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Shown only if someone opens /search without searching from the homepage.
+const SAMPLE_FLIGHTS = [
   {
     id: "AN-360",
     airline: "Ethiopian Airlines",
@@ -50,8 +145,8 @@ const FLIGHTS_DATA = [
     cabin: "Economy",
     co2Note: "Carbon emissions about 7% lower than typical for this route",
     outboundDate: "Mon 14 Dec 2026",
-    returnDate: "Mon 28 Dec 2026",
-    tripSummary: "KES round-trip · 1 adult · Economy",
+    returnDate: null,
+    tripSummary: "KSh one-way · 1 adult · Economy",
     providerNote:
       "Opens the provider in a new tab. Fetched 13 Nov 2026, 14:32. Prices and availability may change. Anga360 does not sell tickets.",
     segments: [
@@ -97,8 +192,8 @@ const FLIGHTS_DATA = [
     cabin: "Economy",
     co2Note: "Carbon emissions about 12% lower than typical for this route",
     outboundDate: "Mon 14 Dec 2026",
-    returnDate: "Mon 28 Dec 2026",
-    tripSummary: "KES round-trip · 1 adult · Economy",
+    returnDate: null,
+    tripSummary: "KSh one-way · 1 adult · Economy",
     providerNote:
       "Opens the provider in a new tab. Fetched 13 Nov 2026, 14:32. Prices and availability may change. Anga360 does not sell tickets.",
     segments: [
@@ -133,8 +228,8 @@ const FLIGHTS_DATA = [
     cabin: "Economy",
     co2Note: "Carbon emissions typical for this route",
     outboundDate: "Mon 14 Dec 2026",
-    returnDate: "Mon 28 Dec 2026",
-    tripSummary: "KES round-trip · 1 adult · Economy",
+    returnDate: null,
+    tripSummary: "KSh one-way · 1 adult · Economy",
     providerNote:
       "Opens the provider in a new tab. Fetched 13 Nov 2026, 14:32. Prices and availability may change. Anga360 does not sell tickets.",
     segments: [
@@ -170,17 +265,54 @@ export default function FlightSearchApp({
   onSwitchTab,
   compareList,
   setCompareList,
-  savedIds,
-  setSavedIds,
+  savedFlights,
+  onToggleSave,
 }) {
+  const location = useLocation();
+  const query = location.state?.query; // set by the homepage; absent on /details, /compare, ...
+
+  const [flights, setFlights] = useState(SAMPLE_FLIGHTS);
+  const [route, setRoute] = useState({ from: "NBO", to: "LHR" });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [saveError, setSaveError] = useState("");
+
   const [maxPrice, setMaxPrice] = useState(120000);
   const [selectedAirlines, setSelectedAirlines] = useState([
     "Ethiopian Airlines",
     "Kenya Airways",
     "RwandAir",
   ]);
-  const [selectedFlight, setSelectedFlight] = useState(FLIGHTS_DATA[0]);
-  const [showReturnOptions, setShowReturnOptions] = useState(false);
+  const [selectedFlight, setSelectedFlight] = useState(SAMPLE_FLIGHTS[0]);
+
+  useEffect(() => {
+    if (!query) return;
+    let cancelled = false;
+    setLoading(true);
+    setError("");
+
+    searchFlights(query)
+      .then((results) => {
+        if (cancelled) return;
+        setFlights(results);
+        setRoute({ from: query.origin, to: query.destination });
+        setSelectedAirlines([...new Set(results.map((fl) => fl.airline))]);
+        setMaxPrice(Math.max(0, ...results.map((fl) => fl.price)));
+        setSelectedFlight(results[0] ?? null);
+      })
+      .catch((err) => !cancelled && setError(err.message))
+      .finally(() => !cancelled && setLoading(false));
+
+    return () => {
+      cancelled = true;
+    };
+  }, [query]);
+
+  const airlines = [...new Set(flights.map((fl) => fl.airline))];
+  const prices = flights.map((fl) => fl.price);
+  const priceCeil = Math.max(1000, ...prices);
+  const priceFloor = Math.min(priceCeil, ...(prices.length ? prices : [0]));
+  const priceStep = Math.max(1, Math.round((priceCeil - priceFloor) / 50));
 
   const toggleAirline = (airline) => {
     setSelectedAirlines((prev) =>
@@ -198,23 +330,22 @@ export default function FlightSearchApp({
     });
   };
 
-  const toggleSaveFlight = (id) => {
-    setSavedIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
+  const handleToggleSave = async (flight) => {
+    setSaveError("");
+    const result = await onToggleSave(flight);
+    if (!result.ok) setSaveError(result.message);
   };
 
   const openDetailsPage = (flight) => {
     setSelectedFlight(flight);
-    setShowReturnOptions(false);
     onSwitchTab("details");
   };
 
-  const filteredFlights = FLIGHTS_DATA.filter(
+  const filteredFlights = flights.filter(
     (f) => f.price <= maxPrice && selectedAirlines.includes(f.airline)
   );
 
-  const isSaved = selectedFlight && savedIds.includes(selectedFlight.id);
+  const isSaved = selectedFlight && savedFlights.some((f) => f.id === selectedFlight.id);
 
   return (
     <main className="container">
@@ -229,82 +360,57 @@ export default function FlightSearchApp({
             <div className="details-main">
               <section className="card details-card">
                 <div className="details-card-header">
-                  <h2>Outbound · {selectedFlight.outboundDate}</h2>
+                  <h2>{selectedFlight.roundTrip ? "Outbound" : "Flight"} · {selectedFlight.outboundDate}</h2>
                   <span className="details-meta">
-                    Total {selectedFlight.duration} · {selectedFlight.stops}
+                    {[selectedFlight.duration && `Total ${selectedFlight.duration}`, selectedFlight.stops]
+                      .filter(Boolean)
+                      .join(" · ")}
                   </span>
                 </div>
 
-                <div className="segments-wrapper">
-                  {selectedFlight.segments.map((seg, idx) => (
-                    <div key={idx}>
-                      <div className="segment-block">
-                        <div className="airline-chip">{seg.code}</div>
+                <SegmentList trip={selectedFlight} />
+              </section>
 
-                        <div className="segment-timeline">
-                          <div className="timeline-point">
-                            <span className="timeline-dot" />
-                            <span className="seg-time">{seg.depTime}</span>
-                            <span className="seg-airport-code">{seg.depCode}</span>
-                            <span className="seg-airport-name">{seg.depAirport}</span>
-                          </div>
-
-                          <div className="timeline-line-row">
-                            <span className="timeline-vertical-line" />
-                            <span className="seg-flight-meta">{seg.flightInfo}</span>
-                          </div>
-
-                          <div className="timeline-point">
-                            <span className="timeline-dot" />
-                            <span className="seg-time">{seg.arrTime}</span>
-                            <span className="seg-airport-code">{seg.arrCode}</span>
-                            <span className="seg-airport-name">{seg.arrAirport}</span>
-                          </div>
-
-                          <div className="seg-tags">
-                            {seg.tags.map((tag) => (
-                              <span key={tag} className="spec-pill">
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      {idx === 0 && selectedFlight.layover && (
-                        <div className="layover-banner">{selectedFlight.layover}</div>
-                      )}
+              {selectedFlight.inbound ? (
+                <section className="card details-card">
+                  <div className="details-card-header">
+                    <h2>Return · {selectedFlight.inbound.date}</h2>
+                    <span className="details-meta">
+                      {[
+                        selectedFlight.inbound.duration && `Total ${selectedFlight.inbound.duration}`,
+                        selectedFlight.inbound.stops,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
+                  </div>
+                  <SegmentList trip={selectedFlight.inbound} />
+                </section>
+              ) : (
+                selectedFlight.roundTrip && (
+                  <section className="card return-card">
+                    <div>
+                      <h3>Return · {selectedFlight.returnDate}</h3>
+                      <p>
+                        No return flights were found for this date. Try the Google Flights link
+                        for other options.
+                      </p>
                     </div>
-                  ))}
-                </div>
-              </section>
-
-              <section className="card return-card">
-                <div>
-                  <h3>Return · {selectedFlight.returnDate}</h3>
-                  <p>
-                    {showReturnOptions
-                      ? "Return flight options loaded for Mon 28 Dec 2026."
-                      : "Return options are loaded after you pick this outbound flight."}
-                  </p>
-                </div>
-                <button
-                  className="btn btn-outline-blue"
-                  onClick={() => setShowReturnOptions((prev) => !prev)}
-                >
-                  {showReturnOptions ? "Hide return flights" : "Show return flights"}
-                </button>
-              </section>
+                  </section>
+                )
+              )}
             </div>
 
             <aside className="card summary-card">
               <span className="summary-label">Total price</span>
               <div className="summary-price">
-                {selectedFlight.currency} {selectedFlight.price.toLocaleString()}
+                {formatKes(selectedFlight.price)}
               </div>
               <p className="summary-sub">{selectedFlight.tripSummary}</p>
 
-              <div className="emissions-banner">{selectedFlight.co2Note}</div>
+              {selectedFlight.co2Note && (
+                <div className="emissions-banner">{selectedFlight.co2Note}</div>
+              )}
 
               <div className="provider-info">
                 <span className="provider-label">Booking provider</span>
@@ -313,19 +419,37 @@ export default function FlightSearchApp({
 
               <button
                 className="btn btn-primary btn-full"
+                disabled={!providerUrl(selectedFlight)}
                 onClick={() =>
-                  window.open("https://www.ethiopianairlines.com", "_blank", "noopener,noreferrer")
+                  window.open(providerUrl(selectedFlight), "_blank", "noopener,noreferrer")
                 }
               >
                 Continue to provider
               </button>
 
+              {selectedFlight.bookingUrl && (
+                <a
+                  className="btn btn-outline-blue btn-full"
+                  href={selectedFlight.bookingUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ textAlign: "center", textDecoration: "none" }}
+                >
+                  See this search on Google Flights
+                </a>
+              )}
+
               <button
                 className="btn btn-outline-blue btn-full"
-                onClick={() => toggleSaveFlight(selectedFlight.id)}
+                onClick={() => handleToggleSave(selectedFlight)}
               >
                 {isSaved ? "Saved ✓" : "Save flight"}
               </button>
+              {saveError && (
+                <p role="alert" style={{ color: "#c0392b", fontSize: "13px" }}>
+                  {saveError}
+                </p>
+              )}
 
               <p className="provider-disclaimer">{selectedFlight.providerNote}</p>
             </aside>
@@ -339,7 +463,7 @@ export default function FlightSearchApp({
           <ScrollReveal>
             <section className="hero-banner">
               <div>
-                <h1>Nairobi (NBO) to London (LHR)</h1>
+                <h1>{route.from} to {route.to}</h1>
                 <p>Compare fares, inspect aircraft specs, and book seamlessly.</p>
               </div>
               <button className="btn btn-secondary" onClick={() => onSwitchTab("compare")}>
@@ -355,13 +479,13 @@ export default function FlightSearchApp({
 
                 <div style={{ marginBottom: "18px" }}>
                   <label style={{ fontSize: "13px", fontWeight: 600, display: "block", marginBottom: "8px" }}>
-                    Max Price: KES {maxPrice.toLocaleString()}
+                    Max Price: {formatKes(maxPrice)}
                   </label>
                   <input
                     type="range"
-                    min="60000"
-                    max="120000"
-                    step="2000"
+                    min={priceFloor}
+                    max={priceCeil}
+                    step={priceStep}
                     value={maxPrice}
                     onChange={(e) => setMaxPrice(Number(e.target.value))}
                     style={{ width: "100%", accentColor: "#1d63dc" }}
@@ -372,7 +496,7 @@ export default function FlightSearchApp({
                   <span style={{ fontSize: "13px", fontWeight: 600, display: "block", marginBottom: "8px" }}>
                     Airlines
                   </span>
-                  {["Ethiopian Airlines", "Kenya Airways", "RwandAir"].map((airline) => (
+                  {airlines.map((airline) => (
                     <label key={airline} className="checkbox-row">
                       <input
                         type="checkbox"
@@ -387,6 +511,11 @@ export default function FlightSearchApp({
             </ScrollReveal>
 
             <div className="flight-list">
+              {loading && <section className="card">Searching flights…</section>}
+              {error && <section className="card" style={{ color: "#c0392b" }}>{error}</section>}
+              {!loading && !error && filteredFlights.length === 0 && (
+                <section className="card">No flights match these filters.</section>
+              )}
               {filteredFlights.map((flight, idx) => {
                 const isComparing = compareList.some((f) => f.id === flight.id);
                 return (
@@ -395,30 +524,33 @@ export default function FlightSearchApp({
                       <div>
                         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                           <strong>{flight.airline}</strong>
-                          <span className="badge">{flight.flightNo}</span>
-                          <span className="badge badge-rating">{flight.rating} ★</span>
+                          {flightLabel(flight) && <span className="badge">{flightLabel(flight)}</span>}
+                          {flight.rating && <span className="badge badge-rating">{flight.rating} ★</span>}
                         </div>
-                        <div className="route-row">
-                          <div>
-                            <div className="time-big">{flight.departure}</div>
-                            <div className="airport-code">NBO</div>
-                          </div>
-                          <div style={{ textAlign: "center" }}>
-                            <div style={{ fontSize: "12px", color: "#64748b" }}>{flight.duration}</div>
-                            <div className="line-bar" />
-                            <div style={{ fontSize: "12px", color: "#64748b" }}>{flight.stops}</div>
-                          </div>
-                          <div>
-                            <div className="time-big">{flight.arrival}</div>
-                            <div className="airport-code">LHR</div>
-                          </div>
-                        </div>
+                        <TripRow
+                          label={flight.inbound ? `Outbound · ${flight.outboundDate}` : null}
+                          trip={flight}
+                        />
+                        {flight.inbound && (
+                          <TripRow
+                            label={`Return · ${flight.inbound.date}${
+                              flight.inbound.airline && flight.inbound.airline !== flight.airline
+                                ? " · " + flight.inbound.airline
+                                : ""
+                            }`}
+                            trip={flight.inbound}
+                          />
+                        )}
+                        {flight.roundTrip && !flight.inbound && (
+                          <p className="trip-row-note">No return flights found for {flight.returnDate}.</p>
+                        )}
                       </div>
 
                       <div style={{ textAlign: "right" }}>
                         <div className="price-amount">
-                          {flight.currency} {flight.price.toLocaleString()}
+                          {formatKes(flight.price)}
                         </div>
+                        {flight.roundTrip && <div className="price-caption">round trip</div>}
                         <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
                           <button
                             className={`btn ${isComparing ? "btn-primary" : "btn-secondary"}`}
@@ -463,7 +595,8 @@ export default function FlightSearchApp({
                   <div key={f.id} className="card">
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
                       <strong>
-                        {f.airline} ({f.flightNo})
+                        {f.airline}
+                        {flightLabel(f) && ` (${flightLabel(f)})`}
                       </strong>
                       <button
                         onClick={() => toggleCompare(f)}
@@ -476,7 +609,7 @@ export default function FlightSearchApp({
                       <div className="spec-row">
                         <span>Price</span>
                         <strong>
-                          {f.currency} {f.price.toLocaleString()}
+                          {formatKes(f.price)}
                         </strong>
                       </div>
                       <div className="spec-row">
@@ -485,7 +618,7 @@ export default function FlightSearchApp({
                       </div>
                       <div className="spec-row">
                         <span>Duration</span>
-                        <span>{f.duration}</span>
+                        <span>{f.duration ?? "—"}</span>
                       </div>
                       <div className="spec-row">
                         <span>Stops</span>
@@ -493,8 +626,16 @@ export default function FlightSearchApp({
                       </div>
                       <div className="spec-row">
                         <span>Aircraft</span>
-                        <span>{f.aircraft}</span>
+                        <span>{f.aircraft ?? "—"}</span>
                       </div>
+                      {f.inbound && (
+                        <div className="spec-row">
+                          <span>Return</span>
+                          <span>
+                            {f.inbound.departure} → {f.inbound.arrival} · {f.inbound.stops}
+                          </span>
+                        </div>
+                      )}
                     </div>
                     <button
                       className="btn btn-primary"
@@ -520,23 +661,29 @@ export default function FlightSearchApp({
               ← Back to Search
             </button>
           </div>
-          {savedIds.length === 0 ? (
+          {saveError && (
+            <p role="alert" style={{ color: "#c0392b", marginBottom: "12px" }}>{saveError}</p>
+          )}
+          {savedFlights.length === 0 ? (
             <p style={{ color: "#64748b" }}>No saved flights yet. Click "Save flight" on any flight details page.</p>
           ) : (
             <div className="flight-list">
-              {FLIGHTS_DATA.filter((f) => savedIds.includes(f.id)).map((flight) => (
+              {savedFlights
+                .map((flight) => (
                 <div key={flight.id} className="card flight-card">
                   <div>
                     <strong>
-                      {flight.airline} · {flight.flightNo}
+                      {[flight.airline, flightLabel(flight)].filter(Boolean).join(" · ")}
                     </strong>
                     <p style={{ fontSize: "13px", color: "#64748b" }}>
-                      {flight.outboundDate} · {flight.departure} – {flight.arrival} ({flight.duration})
+                      {flight.route} · {flight.outboundDate} · {flight.departure} – {flight.arrival}
+                      {flight.duration && ` (${flight.duration})`}
+                      {flight.inbound && ` · Return ${flight.inbound.date}`}
                     </p>
                   </div>
                   <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                     <strong>
-                      {flight.currency} {flight.price.toLocaleString()}
+                      {formatKes(flight.price)}
                     </strong>
                     <button className="btn btn-primary" onClick={() => openDetailsPage(flight)}>
                       Open Details
