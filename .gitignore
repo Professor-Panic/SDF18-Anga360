@@ -26,3 +26,4 @@ backend/.env
 backend/db
 backend/services/__pycache__
 backend/__pycache__
+.env
