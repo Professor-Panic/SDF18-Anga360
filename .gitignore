@@ -22,7 +22,20 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-backend/.env
-backend/db
-backend/services/__pycache__
-backend/__pycache__
+.env
+
+
+# Python backend
+__pycache__/
+*.pyc
+venv/
+.venv/
+.pytest_cache/
+
+# Local database files (if you use SQLite)
+*.db
+*.sqlite3
+
+# Environment files: ignore real secrets, keep the template
+.env.*
+!.env.example
