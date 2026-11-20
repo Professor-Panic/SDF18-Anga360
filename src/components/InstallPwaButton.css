@@ -1,0 +1,39 @@
+.install-pwa-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  background: #fff;
+  color: #1d5bd2;
+  border: 1px solid #1d5bd2;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+.install-pwa-btn:hover {
+  background: #eef4ff;
+  border-color: #1649ad;
+  color: #1649ad;
+}
+
+.install-pwa-btn:active {
+  transform: scale(0.98);
+}
+
+.install-pwa-btn:focus-visible {
+  outline: 2px solid #1d5bd2;
+  outline-offset: 2px;
+}
+
+@media (max-width: 720px) {
+  .install-pwa-btn {
+    padding: 6px 10px;
+    font-size: 0.8125rem;
+  }
+}
