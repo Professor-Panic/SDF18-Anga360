@@ -1,6 +1,7 @@
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/authContext.js";
 import "../flight-search-compare/styles/anga360.css";
+import InstallPwaButton from './InstallPwaButton';
 
 export default function Navbar({
   compareCount = 0,
@@ -69,8 +70,10 @@ export default function Navbar({
       </div>
 
       <div className="navbar-right">
+        <InstallPwaButton />
         {user ? (
           <>
+        
             <span style={{ fontSize: "14px", color: "#334155" }}>
               Hi, {(user.full_name || user.email).split(" ")[0]}
             </span>
