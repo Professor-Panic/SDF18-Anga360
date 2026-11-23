@@ -123,6 +123,8 @@ function TripsStore({ user, children }) {
   // "Invite pending" into "Linked" on the traveller's screen after someone joins.
   useEffect(() => {
     if (!userId) return;
+    // Fetching on mount is intentional: this syncs with the server, not with other state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refresh();
     const timer = setInterval(() => {
       if (!document.hidden) refresh();
