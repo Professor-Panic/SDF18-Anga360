@@ -13,6 +13,7 @@ import {
 
 import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
+import OfflineBanner from './components/OfflineBanner.jsx';
 import LiveFlightApp from './live_flight_info/flight-dashboard.jsx';
 import FlightSearchApp from './flight-search-compare/components/FlightSearchApp.jsx';
 import './flight-search-compare/styles/anga360.css';
@@ -156,6 +157,7 @@ function AppShell() {
 
   return (
     <div className="app-shell">
+      <OfflineBanner />
       <Navbar
         compareCount={compareList.length}
         savedCount={savedFlights.length}

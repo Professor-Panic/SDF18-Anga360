@@ -2,7 +2,7 @@ import os
 import re
 import secrets
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import date, datetime
 
 import psycopg
 from dotenv import load_dotenv
@@ -150,6 +150,11 @@ def flights(
         return error("origin and destination must be 3-letter airport codes, e.g. NBO", 400)
     if not valid_date(date) or (return_date and not valid_date(return_date)):
         return error("dates must look like YYYY-MM-DD", 400)
+    dep = datetime.strptime(date, "%Y-%m-%d").date()
+    if dep < datetime.now().date():
+        return error("The departure date can't be in the past", 400)
+    if return_date and datetime.strptime(return_date, "%Y-%m-%d").date() < dep:
+        return error("The return date must be on or after the departure date", 400)
 
     try:
         data = get_live_flights(origin, destination, date, return_date, cabin)
