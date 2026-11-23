@@ -167,25 +167,6 @@ def flights(
     return data
 
 
-# ---------- trip linking ----------
-#
-# A "trip" is a flight a traveller is being collected from. There is no trips table: a trip is
-# every invite that one traveller (creator_id) made for the same flight number + date, so the
-# invites table carries the flight details and the role the invite is for.
-#
-#   POST   /api/invites                       traveller: new 15-minute, single-use code for a trip
-#   POST   /api/invites/redeem                picker-upper / driver: join with a code
-#   GET    /api/trips                         every trip I'm on, with people, status, shared locations
-#   POST   /api/trips/{trip_id}/payload       send a status ("landed", "out") or a location
-#   DELETE /api/trips/{trip_id}/location/{kind}   stop sharing a location ("flight" or "personal")
-#
-# Everything shared between people goes through linked_trip_data.payload (json):
-#   {"type": "status",   "status": "landed" | "out"}
-#   {"type": "location", "kind": "flight" | "personal", "lat": .., "lon": .., ...}
-#   {"type": "flight_visibility", "hidden": true | false}   traveller only: hide the live plane
-#                                                           from the picker-upper and driver until landed
-# receiver_id is left NULL, meaning "everyone on this trip". invite_code is the sender's own link
-# to the trip (the code they redeemed, or their newest code if they are the traveller).
 
 ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"  # no 0/O or 1/I/L look-alikes
 INVITEE_ROLES = ("picker-upper", "driver")
