@@ -7,7 +7,6 @@ import urllib.request
 
 
 class UpstreamError(Exception):
-    """Another service failed (or the request to it was bad). `status` is what *we* answer with."""
 
     def __init__(self, message, status=502):
         super().__init__(message)
@@ -17,7 +16,6 @@ class UpstreamError(Exception):
 
 def request_json(url, *, data=None, headers=None, timeout=15):
     """GET `url`, or POST `data` (a dict, sent as a form) when it is given, and parse the JSON reply.
-
     HTTP error statuses (401, 404, 429...) are re-raised as urllib.error.HTTPError so the caller
     can decide what each one means. Network failures and non-JSON replies become UpstreamError.
     """

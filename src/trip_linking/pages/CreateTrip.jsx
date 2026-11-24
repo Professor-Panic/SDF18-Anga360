@@ -6,7 +6,8 @@ import { FLIGHT_LOOKUP } from "../data/mockTrips";
 import AirportPicker from "../components/AirportPicker";
 import { formatDate, todayISO } from "../utils/format";
 
-const FLIGHT_PATTERN = /^([A-Z0-9]{2})\s?(\d{1,4}[A-Z]?)$/;
+// Ticket number ("BA 65": 2-character airline code) or Airplane call sign.
+const FLIGHT_PATTERN = /^([A-Z0-9]{2}|[A-Z]{3})\s?(\d{1,4}[A-Z]?)$/;
 
 function parseFlightNumber(raw) {
   const match = raw.trim().toUpperCase().match(FLIGHT_PATTERN);
@@ -18,7 +19,7 @@ function validate({ flightNumber, date }) {
   if (!flightNumber.trim()) {
     errors.flightNumber = "Enter the flight number, for example BA 65.";
   } else if (!parseFlightNumber(flightNumber)) {
-    errors.flightNumber = "Flight number should be an airline code followed by digits, for example BA 65.";
+    errors.flightNumber = "Flight number should be an airline code followed by digits, for example BA 65 or BAW65.";
   }
   if (!date) {
     errors.date = "Choose the date of the flight.";

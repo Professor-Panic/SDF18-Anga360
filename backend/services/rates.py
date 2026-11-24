@@ -1,8 +1,4 @@
-"""Currency exchange rates (USD base), fetched once on the server and shared by everyone.
 
-The source updates about once a day, so we keep what we fetched for 6 hours. If the source is
-down we hand back the last rates we had, marked stale, rather than nothing.
-"""
 
 import threading
 import time
@@ -10,7 +6,7 @@ import urllib.error
 
 from .http_client import UpstreamError, request_json
 
-URL = "https://open.er-api.com/v6/latest/USD"  # free, no key
+URL = "https://open.er-api.com/v6/latest/USD" 
 CACHE_SECONDS = 6 * 3600
 RETRY_SECONDS = 60  # after a failure, wait this long before bothering the source again
 

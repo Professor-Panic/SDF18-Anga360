@@ -34,22 +34,19 @@ async def lifespan(_app):
 
 app = FastAPI(lifespan=lifespan)
 
-# Which websites may call this API from a browser. On the host, set CORS_ORIGINS to the
-# frontend's address (comma-separated for several, no trailing slash):
-#   CORS_ORIGINS=https://anga.vercel.app
-# Localhost stays allowed so `npm run dev` keeps working.
+
 CORS_ORIGINS = [o.strip().rstrip("/") for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
-    allow_origin_regex=r"http://(localhost|127\.0\.0\.1):\d+",
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1):\d+", # Localhost stays allowed so `npm run dev` keeps working.
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-# Render pings this to know the service is up. No database, so it answers instantly.
+# I think this is the easiest way to know the server is up
 @app.get("/health")
 def health():
     return {"ok": True}
@@ -76,9 +73,7 @@ def error(message, status):
 # ---------- accounts ----------
 
 EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-# bcrypt silently ignores everything past 72 bytes, so refuse longer passwords
 MAX_PW_BYTES = 72
-# used when the email doesn't exist, so "no such user" takes as long as "wrong password"
 DUMMY_HASH = hash_password("not-a-real-password")
 
 
@@ -104,9 +99,6 @@ def signup(body: SignupBody, db=Depends(get_db)):
         raise HTTPException(400, "Enter a valid email address")
     if len(body.password) < 8:
         raise HTTPException(400, "Password must be at least 8 characters")
-    if len(body.password.encode()) > MAX_PW_BYTES:
-        raise HTTPException(400, "Password is too long (72 bytes max)")
-
     try:
         user = db.execute(
             """INSERT INTO users (full_name, email, password_hash)
@@ -174,7 +166,7 @@ def flights(
 
     try:
         data = get_live_flights(origin, destination, date, return_date, cabin)
-    except Exception as e:  # Google changed its format, got blocked, network down, ...
+    except Exception as e:
         detail = (
             getattr(e, "error", None)
             or getattr(getattr(e, "response", None), "text", None)
@@ -190,7 +182,6 @@ def flights(
 
 # ---------- other services, called from here so keys and tokens stay on the server ----------
 
-# Live aircraft positions from OpenSky. Logged-in users only: every call spends OpenSky credits.
 @app.get("/api/opensky/{kind}")
 def opensky(kind: str, request: Request, _user_id: int = Depends(get_current_user)):
     try:
@@ -199,7 +190,7 @@ def opensky(kind: str, request: Request, _user_id: int = Depends(get_current_use
         return error(e.message, e.status)
 
 
-# Exchange rates, cached on the server. Public: it holds nothing private.
+# Exchange rates
 @app.get("/api/rates")
 def rates():
     try:
@@ -209,14 +200,18 @@ def rates():
 
 
 
-ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"  # no 0/O or 1/I/L look-alikes
+ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"  
 INVITEE_ROLES = ("picker-upper", "driver")
-FLIGHT_NO = re.compile(r"^([A-Z0-9]{2})(\d{1,4}[A-Z]?)$")
-TRIP_ID = re.compile(r"^(\d+)-([A-Z0-9]{3,7})-(\d{4}-\d{2}-\d{2})$")
+# Ticket number: 2-character IATA airline code + digits ("BA 65", "KQ 101", "W3 120").
+# OpenSky callsign: 3-letter ICAO airline code + digits ("BAW65", "KQA100"). The third
+# character is always a letter, so the two patterns can never match the same text.
+FLIGHT_NO = re.compile(r"^([A-Z0-9]{2}|[A-Z]{3})(\d{1,4}[A-Z]?)$")
+# 3-letter code + up to 4 digits + 1 letter = 8 characters at most
+TRIP_ID = re.compile(r"^(\d+)-([A-Z0-9]{3,8})-(\d{4}-\d{2}-\d{2})$")
 
 
 def ensure_schema():
-    """Adds the columns trip linking needs. Safe to run every start-up (also in db/trip_linking.sql)."""
+    """Adds the columns trip linking needs. """
     try:
         with psycopg.connect(os.environ["DATABASE_URL"]) as db:
             db.execute(
@@ -228,15 +223,14 @@ def ensure_schema():
                      ADD COLUMN IF NOT EXISTS role varchar"""
             )
             db.execute("ALTER TABLE linked_trip_data ALTER COLUMN created_at SET DEFAULT now()")
-            # receiver_id NULL means "everyone on the trip", so the column must allow NULL
+            # receiver_id NULL means "everyone on the trip"(all three are connected)
             db.execute("ALTER TABLE linked_trip_data ALTER COLUMN receiver_id DROP NOT NULL")
             db.commit()
-    except Exception as e:  # don't stop the server; the routes will say what is missing
+    except Exception as e: 
         print("ensure_schema failed:", e)
 
 
 def parse_flight(raw):
-    """' ba 65 ' -> 'BA 65', or None if it isn't an airline code + number."""
     match = FLIGHT_NO.match(re.sub(r"\s+", "", raw or "").upper())
     return f"{match[1]} {match[2]}" if match else None
 
@@ -282,7 +276,7 @@ def create_invite(
 ):
     flight = parse_flight(body.flight_number)
     if not flight:
-        raise HTTPException(400, "Flight number should be an airline code followed by digits, e.g. BA 65")
+        raise HTTPException(400, "Flight number should be an airline code followed by digits, e.g. BA 65 or BAW65")
     if not valid_date(body.flight_date):
         raise HTTPException(400, "The flight date must look like YYYY-MM-DD")
     if body.role not in INVITEE_ROLES:
