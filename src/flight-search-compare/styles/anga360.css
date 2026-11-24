@@ -692,5 +692,21 @@ body {
 }
 
 .trip-row .route-row > div:nth-child(2) {
+  flex: 1; /* the middle column takes the space between the two times... */
   min-width: 110px;
+}
+
+/* ...and the bar fills it, so it is as wide as the text under it */
+.trip-row .line-bar {
+  width: 100%;
+}
+
+/* let the route use the free space on the card instead of shrinking to its content */
+.flight-card > div:first-child {
+  flex: 1;
+  min-width: 0;
+  padding-right: 24px;
+}
+.trip-row .route-row {
+  max-width: 460px;
 }

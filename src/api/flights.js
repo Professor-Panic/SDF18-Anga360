@@ -124,12 +124,12 @@ function buildTrip(legs, { totalDuration, layovers } = {}) {
     };
   });
 
+  // Time in the air and time waiting between flights, kept apart so the UI can show both.
+  // Each is null when any piece of it is unknown, rather than a misleading partial sum.
   const flying = legs.map((l) => l.duration);
-  const total =
-    totalDuration ??
-    (flying.every(Number.isFinite) && gaps.every((g) => g.minutes !== null)
-      ? flying.reduce((a, b) => a + b, 0) + gaps.reduce((a, g) => a + g.minutes, 0)
-      : null);
+  const flyingMinutes = flying.every(Number.isFinite) ? flying.reduce((a, b) => a + b, 0) : null;
+  const layoverMinutes = gaps.every((g) => g.minutes !== null) ? gaps.reduce((a, g) => a + g.minutes, 0) : null;
+  const total = totalDuration ?? (flyingMinutes !== null && layoverMinutes !== null ? flyingMinutes + layoverMinutes : null);
 
   const layoverTexts = gaps.map(
     (g) => `Layover${g.minutes !== null ? " · " + hm(g.minutes) : ""} in ${g.name} (${g.id})`,
@@ -147,6 +147,10 @@ function buildTrip(legs, { totalDuration, layovers } = {}) {
     departure: clock(first.departure_airport.time),
     arrival: clock(last.arrival_airport.time),
     duration: hm(total),
+    flyingMinutes,
+    layoverMinutes, // 0 for a direct flight
+    flyingTime: hm(flyingMinutes),
+    layoverTime: stops === 0 ? null : hm(layoverMinutes),
     stops: stops === 0 ? "Direct" : `${stops} stop${stops > 1 ? "s" : ""}`,
     aircraft: first.airplane || null,
     segments: legs.map((leg) => ({

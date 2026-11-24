@@ -14,6 +14,7 @@ Round trips: Google's round-trip search lists OUTBOUND options only, priced as t
 round trip. So for a round trip we also run a one-way search for the way back and send those
 options as "return_flights"; the frontend pairs one with each outbound so a card shows both.
 """
+import traceback
 from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import quote
 
@@ -78,11 +79,24 @@ def to_serp_shape(results, currency):
     }
 
 
+class SearchParseError(Exception):
+    """Google answered, but in a shape the fast-flights parser couldn't read."""
+
+
 def _run(query):
     try:
         return get_flights(query)
     except FlightsNotFound:
         return []
+    except (IndexError, KeyError, TypeError) as e:
+        # The parser walks deeply nested lists (payload[3][0], k[1][0][1], flight[22]...), so one
+        # field Google leaves out raises a bare "list index out of range". Log the real traceback
+        # (its last frame names the exact line) and show the person something they can act on.
+        traceback.print_exc()
+        raise SearchParseError(
+            "Google Flights sent back data for this route that we couldn't read. "
+            "Try another date, or try again in a minute."
+        ) from e
 
 
 def search(origin, destination, outbound_date, return_date=None, cabin="economy", currency="USD"):
