@@ -190,7 +190,7 @@ export default function FlightMap({ trip, tracking, onSetFlightHidden }) {
     });
   }
 
-  if (!TOKEN) return <Notice>Add VITE_CESIUM_TOKEN to your .env file, then restart npm run dev.</Notice>;
+  if (!TOKEN) return <Notice>Can't access cesium at the moment.</Notice>;
 
   // Numbers shown under the globe.
   const km = live && to ? Math.round(distanceKm(live.lat, live.lon, to.lat, to.lon)) : null;
