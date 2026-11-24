@@ -1,16 +1,109 @@
-# React + Vite
+# ✈️ Anga360 – Flight Search, Comparison & Airport Pickup Coordination
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 📌 Project Overview
 
-Currently, two official plugins are available:
+Anga360 is a full-stack web application that brings flight options together in one place. Travellers can search for flights, compare prices and itineraries, and then coordinate airport pickup with the people waiting for them through a feature called **Trip Linking**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The project demonstrates the use of React, FastAPI and a Supabase (PostgreSQL) database to build a functional, responsive web application that solves a real-world travel problem. It was built by the SDF-TFR18 capstone team at Moringa School.
 
-## React Compiler
+## 🎯 Problem Statement
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Finding a suitable flight means visiting many airline websites and travel platforms, and comparing the results by hand is slow. Once a flight is booked, the person collecting the traveller usually depends on repeated calls and messages to find out whether the plane has landed, is delayed, or when to leave for the airport.
 
-## Expanding the ESLint configuration
+Anga360 addresses both problems. It presents flight options in one interface with tools to sort, filter and compare, and Trip Linking keeps the traveller and their pickup person updated with clear, role-specific flight progress and pickup alerts. Anga360 does not sell tickets, process payments or manage reservations.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## ✨ Features
+
+* Search one-way and round-trip flights with airport suggestions
+* Validate user input before searching
+* View airline, times, duration, stops and price for every result, with prices shown in Kenyan shillings
+* Sort and filter results without repeating the search
+* Compare up to three flights side by side
+* Open a booking link to continue with the provider
+* Register, log in and save flights to your own account
+* Create a trip for a flight and share a short invite code with family, friends or drivers
+* Follow a linked flight through clear stages (Departed, In the air, Landed, At the gate)
+* "Leave now" pickup alerts and an "I'm out" update from the traveller
+* Live flight positions from OpenSky Network on an interactive 3D globe
+* Installable Progressive Web App with an offline banner
+* Responsive design for mobile, tablet, and desktop
+
+## 📄 Pages Included
+
+* Home (/) – Introduces Anga360 and starts a search
+* Search (/search) – Flight search form and results
+* Details (/details) – Expanded information for a selected flight
+* Compare (/compare) – Side-by-side comparison of selected flights
+* Saved (/saved) – Flights saved to your account
+* Linked Trips (/linked-trips) – Trips you are connected to, with status and role
+* Live (/live) – Live flight information on the globe
+* Login and Register (/login, /register) – Account pages
+
+All pages are linked together and interact with the FastAPI backend.
+
+## 🛠️ Technologies Used
+
+* React 19 and Vite – Frontend interface and build tooling
+* React Router – Page navigation
+* Tailwind CSS – Styling and responsive layout
+* CesiumJS – Interactive 3D globe
+* vite-plugin-pwa – Installable app with offline support
+* Python and FastAPI – Backend REST API
+* Supabase (PostgreSQL) – Database, accessed through psycopg
+* PyJWT and bcrypt – Token authentication and password hashing
+* fast-flights and SerpApi – Google Flights data
+* OpenSky Network – Live aircraft positions
+* Vercel and Render – Hosting for the frontend and the backend
+
+## 💾 Data Persistence
+
+Accounts, saved flights, linked trips and invite codes are stored in a Supabase (PostgreSQL) database through the FastAPI backend. The database tables are created automatically when the backend starts. Flight search results are fetched when needed, and the browser keeps recent searches briefly so repeat searches load quickly.
+
+## 🚀 How to Run the Project
+
+1. Clone the repository and open the project folder in VS Code
+2. Install the frontend packages with `npm install`
+3. Install the backend packages with `pip install -r backend/requirements.txt`
+4. Create `backend/.env` with `DATABASE_URL` (your Supabase connection string), `JWT_SECRET` (a long random string) and `SERPAPI_API_KEY` (your SerpApi key)
+5. Start the backend from the `backend` folder with `uvicorn app:app --reload`
+6. Start the frontend from the project root with `npm run dev`
+7. Open the address Vite prints in your browser (usually `http://localhost:5173`)
+
+Optional settings go in a `.env` file in the project root: `VITE_API_URL` (backend address, defaults to `http://127.0.0.1:8000`) and `VITE_CESIUM_TOKEN` (a Cesium ion token for globe imagery). Never commit `.env` files.
+
+## ⚠️ Known Limitations
+
+* fast-flights does not provide flight numbers or per-airline booking links
+* Every SerpApi search uses part of a limited search quota
+* Prices and availability can change, so every result shows when it was fetched
+* No payments, ticket issuance or reservation management
+
+## 📚 Learning Outcomes
+
+* Building a full-stack application with React, FastAPI and PostgreSQL
+* Integrating external data sources and normalising their responses
+* Token-based authentication and role-based access
+* Working with a 3D globe and live data
+* Building an installable, offline-capable PWA
+* Agile delivery with a Jira Scrum board, Git and GitHub
+
+## 👥 Authors
+
+* Lucky Brian Wekesa (Project Lead) - [wekesa.lucky@student.moringaschool.com](mailto:wekesa.lucky@student.moringaschool.com)
+* Tedd Edwin (Scrum Master and Backend Lead) - [tedd.edwin@student.moringaschool.com](mailto:tedd.edwin@student.moringaschool.com)
+* Sascha Mckayla (Frontend Lead) - [sascha.mckayla@student.moringaschool.com](mailto:sascha.mckayla@student.moringaschool.com)
+* Patricia Ndung’u (Frontend Developer) - [patricia.ndungu@student.moringaschool.com](mailto:patricia.ndungu@student.moringaschool.com)
+
+## 📦 GitHub Repository Description
+
+A flight search, comparison and airport-pickup coordination app built with React, FastAPI and Supabase, with live flight tracking on a 3D globe.
+
+## ✅ Final Note
+
+This project was built as the SDF-TFR18 capstone at Moringa School and demonstrates full-stack development with external APIs, authentication and a Progressive Web App.
+
+## 📜 License
+
+MIT License
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files, to deal in the Software without restriction.
