@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getAccessToken, getOpenSkyData } from "./opensky";
+import { getOpenSkyData } from "./opensky";
 
 export default function FlightDashboard() {
   const [aircraft, setAircraft] = useState([]);
@@ -11,12 +11,7 @@ export default function FlightDashboard() {
 
     async function load() {
       try {
-        const token = await getAccessToken();
-        const data = await getOpenSkyData(
-          token,
-            { lamin: -35, lomin: -17, lamax: 37, lomax: 51 },
-          "states"
-        );
+        const data = await getOpenSkyData({ lamin: -35, lomin: -17, lamax: 37, lomax: 51 }, "states");
         if (!cancelled) {
           setAircraft(data);
           setError(null);

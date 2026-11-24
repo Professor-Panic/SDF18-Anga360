@@ -1,0 +1,25 @@
+
+services:
+  - type: web
+    name: anga-backend
+    runtime: python
+    plan: free    
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL       
+        sync: false
+      - key: JWT_SECRET         
+        sync: false
+      - key: SERPAPI_KEY
+        sync: false
+      - key: FLIGHT_SOURCE   
+        sync: false
+      - key: OPENSKY_CLIENT_ID
+        sync: false
+      - key: OPENSKY_CLIENT_SECRET
+        sync: false
+      - key: CORS_ORIGINS 
+        sync: false

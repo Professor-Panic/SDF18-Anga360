@@ -1,65 +1,35 @@
-import { useState,useEffect } from "react";
-import axios from "axios";
-const OPENSKY_BASE = "/opensky-api/api";
-export async function getAccessToken(){
-    const params = new URLSearchParams({
-        grant_type: 'client_credentials',
-        client_id: 'professor_panic-api-client',
-        client_secret:'ist7seyqkSTC1hgk9GG7Sh571UbxJfpL',
-    });
-    const res = await axios.post(
-    '/opensky-auth/auth/realms/opensky-network/protocol/openid-connect/token',
-    params
-  );
+import { authFetch } from "../api/auth.js";
 
-  return res.data.access_token;
-}
-// Maps the `type` argument to an OpenSky endpoint
-const ENDPOINTS = {
-  states: "/states/all",             // live aircraft: { lamin, lomin, lamax, lomax, icao24, time }
-  flights: "/flights/all",           // all flights in a time window: { begin, end } (max 2 hours)
-  aircraft: "/flights/aircraft",     // flights for one aircraft: { icao24, begin, end }
-  arrival: "/flights/arrival",       // arrivals at an airport: { airport, begin, end }
-  departure: "/flights/departure",   // departures from an airport: { airport, begin, end }
-  track: "/tracks",                  // trajectory of an aircraft: { icao24, time }
-};
-export async function getOpenSkyData(token, request = {}, type = "states") {
-  const endpoint = ENDPOINTS[type];
-  if (!endpoint) {
-    throw new Error(
-      `Unknown type "${type}". Use one of: ${Object.keys(ENDPOINTS).join(", ")}`
-    );
+// Live aircraft data from the OpenSky Network, fetched through our own backend.
+// The backend holds the OpenSky credentials and token, so nothing secret reaches the browser.
+//
+// type is one of: "states" | "flights" | "aircraft" | "arrival" | "departure" | "track"
+//   states    live aircraft: { lamin, lomin, lamax, lomax, icao24, time }  (no box = whole world)
+//   flights   all flights in a time window: { begin, end } (max 2 hours)
+//   aircraft  flights of one aircraft: { icao24, begin, end }
+//   arrival   arrivals at an airport: { airport, begin, end }   (airport = 4-letter ICAO code)
+//   departure departures from an airport: { airport, begin, end }
+//   track     trajectory of an aircraft: { icao24, time }
+//
+// "states" resolves to a list of { icao24, callsign, originCountry, longitude, latitude,
+// altitude (m), onGround, velocity (m/s), heading, verticalRate }. Nothing matching resolves to [].
+export async function getOpenSkyData(request = {}, type = "states") {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(request)) {
+    if (value !== undefined && value !== null) query.set(key, String(value));
   }
+  const qs = query.toString();
 
+  let res;
   try {
-    const res = await axios.get(`${OPENSKY_BASE}${endpoint}`, {
-      params: request, // axios builds the query string and skips undefined values
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
-
-    if (type === "states") {
-      return (res.data.states || []).map(s => ({
-        icao24: s[0],
-        callsign: s[1]?.trim(),
-        originCountry: s[2],
-        longitude: s[5],
-        latitude: s[6],
-        altitude: s[7],        // i think in meters
-        onGround: s[8],
-        velocity: s[9],        // m/s
-        heading: s[10],        // degrees from north
-        verticalRate: s[11],
-      }));
-    }
-    return res.data;
-  } catch (err) {
-    const status = err.response?.status;
-
-    if (status === 404) return []; // OpenSky returns 404 when nothing matches
-    if (status === 401) throw new Error("Invalid or expired token");
-    if (status === 429) throw new Error("Rate limit reached, try again later");
-
-    console.error("getOpenSkyData failed:", err);
-    throw err;
+    res = await authFetch(`/api/opensky/${type}${qs ? `?${qs}` : ""}`);
+  } catch {
+    throw new Error("Can't reach the server.");
   }
+
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401) throw new Error("Log in to see live flight data.");
+  if (res.status === 429) throw new Error("Rate limit reached, try again later");
+  if (!res.ok) throw new Error(data.error || `Live flight data failed (${res.status})`);
+  return data;
 }

@@ -6,7 +6,7 @@ from datetime import date, datetime
 
 import psycopg
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -19,6 +19,9 @@ load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 
 from auth import create_token, get_current_user, hash_password, verify_password  # noqa: E402
 from db import get_db  # noqa: E402
+from services.http_client import UpstreamError  # noqa: E402
+from services.opensky import query as opensky_query  # noqa: E402
+from services.rates import get_rates  # noqa: E402
 from services.flight_service import get_live_flights  # noqa: E402
 
 
@@ -31,12 +34,25 @@ async def lifespan(_app):
 
 app = FastAPI(lifespan=lifespan)
 
+# Which websites may call this API from a browser. On the host, set CORS_ORIGINS to the
+# frontend's address (comma-separated for several, no trailing slash):
+#   CORS_ORIGINS=https://anga.vercel.app
+# Localhost stays allowed so `npm run dev` keeps working.
+CORS_ORIGINS = [o.strip().rstrip("/") for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=CORS_ORIGINS,
     allow_origin_regex=r"http://(localhost|127\.0\.0\.1):\d+",
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# Render pings this to know the service is up. No database, so it answers instantly.
+@app.get("/health")
+def health():
+    return {"ok": True}
 
 
 # ---------- one error shape for everything: {"error": "..."} ----------
@@ -170,6 +186,26 @@ def flights(
     if "error" in data:
         return error(data["error"], 502)
     return data
+
+
+# ---------- other services, called from here so keys and tokens stay on the server ----------
+
+# Live aircraft positions from OpenSky. Logged-in users only: every call spends OpenSky credits.
+@app.get("/api/opensky/{kind}")
+def opensky(kind: str, request: Request, _user_id: int = Depends(get_current_user)):
+    try:
+        return opensky_query(kind, dict(request.query_params))
+    except UpstreamError as e:
+        return error(e.message, e.status)
+
+
+# Exchange rates, cached on the server. Public: it holds nothing private.
+@app.get("/api/rates")
+def rates():
+    try:
+        return get_rates()
+    except UpstreamError as e:
+        return error(e.message, e.status)
 
 
 
