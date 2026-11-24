@@ -96,7 +96,8 @@ export function useLiveFlight({ tripId, flightNumber, originCode, destinationCod
 
     async function check() {
       try {
-        const planes = await getOpenSkyData(box, "states");
+        // callsign lets the backend look this one flight up directly (adsb.lol first, OpenSky as the fallback)
+        const planes = await getOpenSkyData({ ...box, callsign }, "states");
         if (stopped) return;
 
         // If two aircraft share a callsign, prefer the one that is flying.

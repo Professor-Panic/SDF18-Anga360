@@ -4,7 +4,9 @@ import { authFetch } from "../api/auth.js";
 // The backend holds the OpenSky credentials and token, so nothing secret reaches the browser.
 //
 // type is one of: "states" | "flights" | "aircraft" | "arrival" | "departure" | "track"
-//   states    live aircraft: { lamin, lomin, lamax, lomax, icao24, time }  (no box = whole world)
+//   states    live aircraft: { lamin, lomin, lamax, lomax, icao24, callsign, time }  (no box = whole world)
+//             The backend asks adsb.lol first and falls back to OpenSky. Pass `callsign` (e.g. "KQA100")
+//             to look one flight up directly; `time` (history) is answered by OpenSky only.
 //   flights   all flights in a time window: { begin, end } (max 2 hours)
 //   aircraft  flights of one aircraft: { icao24, begin, end }
 //   arrival   arrivals at an airport: { airport, begin, end }   (airport = 4-letter ICAO code)

@@ -6,6 +6,7 @@ import time
 import urllib.error
 import urllib.parse
 
+from . import adsb_lol
 from .http_client import UpstreamError, request_json
 
 TOKEN_URL = "https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token"
@@ -40,6 +41,13 @@ def _airport(value):  # ICAO airport code, e.g. HKJK (not the 3-letter IATA one)
     return value.upper()
 
 
+def _callsign(value):  # e.g. KQA100 or BAW65 (OpenSky and adsb.lol both use these)
+    value = value.strip().upper()
+    if not re.fullmatch(r"[A-Z0-9]{3,8}", value):
+        raise ValueError
+    return value
+
+
 _LAT, _LON = _number(-90, 90), _number(-180, 180)
 _FLIGHT_WINDOW = {"begin": _whole, "end": _whole}
 
@@ -47,7 +55,10 @@ _FLIGHT_WINDOW = {"begin": _whole, "end": _whole}
 ENDPOINTS = {
     "states": (
         "/states/all",
-        {"lamin": _LAT, "lomin": _LON, "lamax": _LAT, "lomax": _LON, "icao24": _icao24, "time": _whole},
+        # "callsign" is not an OpenSky option: adsb.lol looks the flight up by it directly, and
+        # on the OpenSky fallback we filter the results by it ourselves (see query())
+        {"lamin": _LAT, "lomin": _LON, "lamax": _LAT, "lomax": _LON, "icao24": _icao24, "time": _whole,
+         "callsign": _callsign},
         set(),
     ),
     "flights": ("/flights/all", _FLIGHT_WINDOW, {"begin", "end"}),
@@ -212,6 +223,32 @@ def query(kind, raw_params):
     if cached is not None:
         return cached
 
-    result = _shape(kind, _call(ENDPOINTS[kind][0], params))
+    callsign = params.pop("callsign", None)  # never sent to OpenSky, it has no such option
+
+    result = None
+    if kind == "states":
+        result = _try_adsb(callsign, params)  # first choice; None means "ask OpenSky instead"
+
+    if result is None:
+        # fallback: the original OpenSky code path
+        result = _shape(kind, _call(ENDPOINTS[kind][0], params))
+        if callsign:
+            result = [p for p in result if p["callsign"] == callsign]
+
     _cache_put(key, result)
     return result
+
+
+def _try_adsb(callsign, params):
+    """Ask adsb.lol first. Returns the planes, or None when OpenSky should answer instead:
+    adsb.lol can't do this kind of search, it failed, or (only if ADSB_FALLBACK_ON_EMPTY=1)
+    it found nothing. By default "nothing found" is accepted as the answer, so an idle flight
+    doesn't send a slow OpenSky request every time the page polls."""
+    try:
+        planes = adsb_lol.states(callsign, params)
+    except UpstreamError as e:
+        print(f"adsb.lol failed ({e.message}), falling back to OpenSky")
+        return None
+    if planes == [] and os.getenv("ADSB_FALLBACK_ON_EMPTY") == "1":
+        return None
+    return planes
