@@ -9,7 +9,9 @@
   --muted: #64748b;
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -20,6 +22,7 @@ body {
   background-color: var(--bg);
   color: var(--text);
   line-height: 1.5;
+  overflow-x: hidden;
 }
 
 /* Top Navbar - Centered Navigation Links Layout */
@@ -27,6 +30,7 @@ body {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
+  gap: 16px;
   padding: 14px 48px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
@@ -38,17 +42,20 @@ body {
 .navbar-left {
   display: flex;
   align-items: center;
+  min-width: 0;
 }
 
 .navbar-center {
   display: flex;
   justify-content: center;
+  min-width: 0;
 }
 
 .navbar-right {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .brand {
@@ -56,6 +63,7 @@ body {
   align-items: center;
   gap: 10px;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .brand-logo {
@@ -65,6 +73,7 @@ body {
   border-radius: 12px;
   object-fit: contain;
   display: block;
+  flex-shrink: 0;
   transition: transform 0.2s ease;
 }
 
@@ -83,12 +92,14 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 15px;
+  flex-shrink: 0;
 }
 
 .brand-name {
   font-size: 18px;
   font-weight: 700;
   color: var(--navy);
+  white-space: nowrap;
 }
 
 .nav-links {
@@ -106,6 +117,8 @@ body {
   cursor: pointer;
   padding: 6px 0;
   transition: color 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .nav-item:hover,
@@ -126,6 +139,7 @@ body {
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 24px;
+  min-width: 0;
 }
 
 /* Buttons */
@@ -136,6 +150,7 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  white-space: nowrap;
 }
 
 .btn-primary {
@@ -206,12 +221,15 @@ body {
   display: flex;
   flex-direction: column;
   gap: 18px;
+  min-width: 0;
 }
 
 .details-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
   padding-bottom: 18px;
   border-bottom: 1px solid #f1f5f9;
   margin-bottom: 20px;
@@ -251,11 +269,13 @@ body {
 
 .segment-timeline {
   flex: 1;
+  min-width: 0;
 }
 
 .timeline-point {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
 }
 
@@ -298,6 +318,7 @@ body {
   height: 28px;
   background: #cbd5e1;
   display: inline-block;
+  flex-shrink: 0;
 }
 
 .seg-flight-meta {
@@ -337,6 +358,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
   gap: 16px;
 }
 
@@ -421,6 +443,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;
   margin-bottom: 24px;
 }
 
@@ -457,6 +480,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;
 }
 
 .route-row {
@@ -541,22 +565,6 @@ body {
   transform: translateY(0);
 }
 
-@media (max-width: 860px) {
-  .navbar {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 14px 20px;
-  }
-  .navbar-center {
-    justify-content: flex-start;
-    overflow-x: auto;
-  }
-  .details-grid,
-  .search-layout {
-    grid-template-columns: 1fr;
-  }
-}
-
 /* App Shell Sticky Footer Layout */
 .app-shell {
   min-height: 100vh;
@@ -566,6 +574,7 @@ body {
 
 .app-content {
   flex: 1;
+  min-width: 0;
 }
 
 /* Global Footer */
@@ -647,8 +656,8 @@ body {
   font-size: 12px;
   color: #94a3b8;
 }
-/* ---- round-trip cards: outbound and return in one card ---- */
 
+/* ---- round-trip cards: outbound and return in one card ---- */
 .trip-row + .trip-row {
   margin-top: 12px;
   padding-top: 12px;
@@ -692,21 +701,140 @@ body {
 }
 
 .trip-row .route-row > div:nth-child(2) {
-  flex: 1; /* the middle column takes the space between the two times... */
+  flex: 1;
   min-width: 110px;
 }
 
-/* ...and the bar fills it, so it is as wide as the text under it */
 .trip-row .line-bar {
   width: 100%;
 }
 
-/* let the route use the free space on the card instead of shrinking to its content */
 .flight-card > div:first-child {
   flex: 1;
   min-width: 0;
   padding-right: 24px;
 }
+
 .trip-row .route-row {
   max-width: 460px;
+}
+
+/* ---- Responsive Breakpoints ---- */
+@media (max-width: 860px) {
+  .navbar {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px 20px;
+  }
+
+  .navbar-center {
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nav-links {
+    gap: 20px;
+  }
+
+  .brand-logo {
+    height: 48px;
+    max-width: 170px;
+  }
+
+  .hero-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 20px;
+  }
+
+  .flight-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .flight-card > div:first-child {
+    padding-right: 0;
+  }
+
+  .price-caption {
+    text-align: left;
+  }
+
+  .details-grid,
+  .search-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-card,
+  .sidebar {
+    position: static;
+  }
+}
+
+@media (max-width: 600px) {
+  .navbar {
+    padding: 10px 16px;
+    gap: 10px;
+  }
+
+  .navbar-right {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .brand-logo {
+    height: 40px;
+    max-width: 140px;
+  }
+
+  .brand-name {
+    font-size: 16px;
+  }
+
+  .nav-links {
+    gap: 14px;
+  }
+
+  .nav-item {
+    font-size: 13px;
+  }
+
+  .container {
+    padding: 20px 16px 48px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+
+  .route-row {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .trip-row .route-row > div:nth-child(2) {
+    min-width: 72px;
+  }
+
+  .footer-inner {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 28px 16px 24px;
+  }
+
+  .footer-logo {
+    height: 42px;
+    max-width: 160px;
+  }
+
+  .footer-tagline {
+    max-width: none;
+  }
+
+  .footer-bottom {
+    padding: 16px 16px 24px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
