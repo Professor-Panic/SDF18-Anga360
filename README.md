@@ -57,19 +57,39 @@ All pages are linked together and interact with the FastAPI backend.
 
 ## 💾 Data Persistence
 
-Accounts, saved flights, linked trips and invite codes are stored in a Supabase (PostgreSQL) database through the FastAPI backend. The database tables are created automatically when the backend starts. Flight search results are fetched when needed, and the browser keeps recent searches briefly so repeat searches load quickly.
+Accounts, saved flights, linked trips and invite codes are stored in a Supabase (PostgreSQL) database through the FastAPI backend. The base tables are created by the SQL scripts in `backend/db`, and the backend adds a few extra columns when it starts. Flight search results are fetched when needed, and the browser keeps recent searches briefly so repeat searches load quickly.
 
 ## 🚀 How to Run the Project
 
 1. Clone the repository and open the project folder in VS Code
 2. Install the frontend packages with `npm install`
 3. Install the backend packages with `pip install -r backend/requirements.txt`
-4. Create `backend/.env` with `DATABASE_URL` (your Supabase connection string), `JWT_SECRET` (a long random string) and `SERPAPI_API_KEY` (your SerpApi key)
-5. Start the backend from the `backend` folder with `uvicorn app:app --reload`
-6. Start the frontend from the project root with `npm run dev`
-7. Open the address Vite prints in your browser (usually `http://localhost:5173`)
+4. Create `backend/.env` with `DATABASE_URL` (your Supabase connection string), `JWT_SECRET` (a long random string), `OPENSKY_CLIENT_ID` and `OPENSKY_CLIENT_SECRET` (your OpenSky API client). Add `CORS_ORIGINS` when you deploy
+5. Create the tables by running the SQL files in `backend/db` in the Supabase SQL editor
+6. Start the backend from the `backend` folder with `uvicorn app:app --reload`
+7. Start the frontend from the project root with `npm run dev`
+8. Open the address Vite prints in your browser (usually `http://localhost:5173`)
 
 Optional settings go in a `.env` file in the project root: `VITE_API_URL` (backend address, defaults to `http://127.0.0.1:8000`) and `VITE_CESIUM_TOKEN` (a Cesium ion token for globe imagery). Never commit `.env` files.
+
+## 🔌 API Routes
+
+All routes are under `/api`. Routes marked "Login" need a valid token in the `Authorization` header.
+
+* GET /health – Check that the backend is running
+* POST /api/signup – Create an account
+* POST /api/login – Sign in and receive a token
+* GET /api/flights – Search flights
+* GET /api/rates – Exchange rates for price display
+* GET /api/opensky/{kind} – Live aircraft data for the globe
+* POST /api/saved-flights – Save a flight (Login)
+* GET /api/saved-flights – List your saved flights (Login)
+* DELETE /api/saved-flights/{key} – Remove a saved flight (Login)
+* POST /api/invites – Create a trip invite code (Login)
+* POST /api/invites/redeem – Join a trip with an invite code (Login)
+* GET /api/trips – List your linked trips (Login)
+* POST /api/trips/{trip_id}/payload – Share trip details or location (Login)
+* DELETE /api/trips/{trip_id}/location/{kind} – Stop sharing a location (Login)
 
 ## ⚠️ Known Limitations
 
