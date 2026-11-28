@@ -28,14 +28,40 @@ export default function FlightDashboard() {
     };
   }, []);
 
-  if (loading) return <p>Loading aircraft...</p>;
-  if (error) return <p>Error: {error}</p>;
+  if (loading)
+    return (
+      <section className="live-page" role="status">
+        <div className="live-card">
+          <span className="live-pill">LIVE · MOJA KWA MOJA</span>
+          <div className="ag-skel" style={{ height: 96, width: 200, margin: "28px auto 12px" }} />
+          <p className="live-label">Tafadhali subiri… Loading aircraft</p>
+        </div>
+      </section>
+    );
+  if (error)
+    return (
+      <section className="live-page">
+        <div className="live-card">
+          <h1>We could not load live flights</h1>
+          <p className="live-label">Pole! Please try again in a moment.</p>
+          <p className="live-note">{error}</p>
+        </div>
+      </section>
+    );
 
   console.log(aircraft); // check the data in the browser console
 
   return (
-    <>
-      <p>{aircraft.length} aircraft in view</p>
-    </>
+    <section className="live-page">
+      <div className="live-card">
+        <span className="live-pill">LIVE · MOJA KWA MOJA</span>
+        <h1>Skies above Africa right now</h1>
+        <div className="live-count">{aircraft.length}</div>
+        <p className="live-label">aircraft in view</p>
+        <p className="live-note">
+          Live positions from the OpenSky Network. Open a linked trip to follow your own flight.
+        </p>
+      </div>
+    </section>
   );
 }

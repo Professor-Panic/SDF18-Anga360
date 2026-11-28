@@ -9,10 +9,54 @@ const cabinOptions = [
     { value: "business", label: "Business" },
 ];
 
+function RouteArt() {
+    // Decorative route map: Nairobi to three hubs. Drawn once on load.
+    return (
+        <svg className="hero-routes" viewBox="0 0 520 360" aria-hidden="true" focusable="false">
+            <defs>
+                <linearGradient id="routeFade" x1="0" y1="1" x2="1" y2="0">
+                    <stop offset="0" stopColor="#fbb740" />
+                    <stop offset="1" stopColor="#bcd5fb" />
+                </linearGradient>
+            </defs>
+            <circle className="hero-globe" cx="300" cy="230" r="190" />
+            <ellipse className="hero-globe" cx="300" cy="230" rx="82" ry="190" />
+            <ellipse className="hero-globe" cx="300" cy="230" rx="190" ry="70" />
+            <path className="hero-arc hero-arc-1" d="M120 262 C 170 110, 330 60, 452 98" />
+            <path className="hero-arc hero-arc-2" d="M120 262 C 220 200, 330 190, 430 250" />
+            <path className="hero-arc hero-arc-3" d="M120 262 C 150 180, 230 140, 300 150" />
+            <g className="hero-pins">
+                <circle cx="452" cy="98" r="5" /><circle cx="430" cy="250" r="5" /><circle cx="300" cy="150" r="5" />
+            </g>
+            <circle className="hero-origin-pulse" cx="120" cy="262" r="9" />
+            <circle className="hero-origin" cx="120" cy="262" r="7" />
+            <text className="hero-label" x="96" y="292">NBO</text>
+            <text className="hero-label" x="458" y="94">LHR</text>
+            <text className="hero-label" x="436" y="272">DXB</text>
+            <text className="hero-label" x="306" y="140">ADD</text>
+        </svg>
+    );
+}
+
+const STEP_ICONS = {
+    Search: (
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4.5 4.5" /></svg>
+    ),
+    Compare: (
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16M17 4v16M4 8l3-4 3 4M14 16l3 4 3-4" /></svg>
+    ),
+    Continue: (
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6" /></svg>
+    ),
+};
+
 function Workings_Card(props) {
     return (
         <div className="homepage-working-card">
-            <p className="homepage-working-card-number">{props.number}</p>
+            <div className="homepage-working-card-top">
+                <span className="homepage-working-card-icon">{STEP_ICONS[props.title]}</span>
+                <p className="homepage-working-card-number">Step {props.number}</p>
+            </div>
             <p className="homepage-working-card-title">{props.title}</p>
             <p className="homepage-working-card-explanation">{props.explanation}</p>
         </div>
@@ -103,6 +147,7 @@ export function HomePage() {
         <div className="class-homepage">
 
             <div className="class-homepage-middle-area">
+                <RouteArt />
                 <p className="homepage-hero-content">
                     Find and compare flights in one place
                 </p>
@@ -117,11 +162,11 @@ export function HomePage() {
 
                     <div className="homepage-search-filters">
                         <Filter_Card
-                            title="From" placeholder="Airport code, e.g. NBO" maxLength={3}
+                            title="From" placeholder="e.g. NBO" maxLength={3}
                             value={origin} onChange={(e) => setOrigin(e.target.value.toUpperCase())}
                         />
                         <Filter_Card
-                            title="To" placeholder="Airport code, e.g. LHR" maxLength={3}
+                            title="To" placeholder="e.g. LHR" maxLength={3}
                             value={destination} onChange={(e) => setDestination(e.target.value.toUpperCase())}
                         />
                         <Filter_Card

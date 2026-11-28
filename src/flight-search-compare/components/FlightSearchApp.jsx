@@ -520,10 +520,29 @@ export default function FlightSearchApp({
             </ScrollReveal>
 
             <div className="flight-list">
-              {loading && <section className="card">Searching flights…</section>}
+              {loading && (
+                <div className="ag-skel-list" role="status" aria-live="polite">
+                  <p className="ag-skel-note">
+                    Tunatafuta ndege bora… <span>Searching flights</span>
+                  </p>
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="ag-skel-card">
+                      <div>
+                        <div className="ag-skel ag-skel--line ag-skel--mid" />
+                        <div className="ag-skel ag-skel--line" />
+                        <div className="ag-skel ag-skel--line ag-skel--short" />
+                      </div>
+                      <div className="ag-skel ag-skel--price" />
+                    </div>
+                  ))}
+                </div>
+              )}
               {error && <section className="card" style={{ color: "#c0392b" }}>{error}</section>}
               {!loading && !error && filteredFlights.length === 0 && (
-                <section className="card">No flights match these filters.</section>
+                <section className="card ag-empty">
+                  <h3>No flights match these filters</h3>
+                  <p>Pole! Try raising the price limit or clearing the airline filter.</p>
+                </section>
               )}
               {filteredFlights.map((flight, idx) => {
                 const isComparing = compareList.some((f) => f.id === flight.id);
@@ -690,7 +709,10 @@ export default function FlightSearchApp({
             <p role="alert" style={{ color: "#c0392b", marginBottom: "12px" }}>{saveError}</p>
           )}
           {savedFlights.length === 0 ? (
-            <p style={{ color: "#64748b" }}>No saved flights yet. Click "Save flight" on any flight details page.</p>
+            <div className="ag-empty">
+              <h3>Hakuna ndege zilizohifadhiwa</h3>
+              <p>No saved flights yet. Click "Save flight" on any flight details page.</p>
+            </div>
           ) : (
             <div className="flight-list">
               {savedFlights

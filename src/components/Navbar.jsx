@@ -71,7 +71,7 @@ export default function Navbar({
       <div className="navbar-right">
         {user ? (
           <>
-            <span style={{ fontSize: "14px", color: "#334155" }}>
+            <span className="navbar-greeting">
               Hi, {(user.full_name || user.email).split(" ")[0]}
             </span>
             <button
