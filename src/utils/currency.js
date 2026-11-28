@@ -2,7 +2,10 @@
 // Flight prices arrive in whatever currency Google returns (USD for the free source),
 // so we convert them once, when the results load.
 
-const RATES_URL = "https://open.er-api.com/v6/latest/USD"; // free, no key
+import { API_URL } from "../api/config.js";
+
+// Our backend fetches the rates once and shares them (see backend/services/rates.py).
+const RATES_URL = `${API_URL}/api/rates`;
 const CACHE_KEY = "anga_fx_rates";
 const CACHE_HOURS = 12;
 const FALLBACK = { USD: 1, KES: 129 }; // only used if the rate service can't be reached
@@ -26,15 +29,15 @@ export function getRates() {
   if (!inflight) {
     inflight = (async () => {
       try {
-        const res = await fetch(RATES_URL, { signal: AbortSignal.timeout(5000) });
+        const res = await fetch(RATES_URL, { signal: AbortSignal.timeout(10000) });
         const data = await res.json();
-        if (data.result !== "success" || !data.rates?.KES) throw new Error("bad rates");
+        if (!res.ok || !data.rates?.KES) throw new Error("bad rates");
         try {
           localStorage.setItem(CACHE_KEY, JSON.stringify({ savedAt: Date.now(), rates: data.rates }));
         } catch {
           /* storage blocked, fine */
         }
-        return { rates: data.rates, approximate: false };
+        return { rates: data.rates, approximate: Boolean(data.stale) }; // stale = the server's last known rates
       } catch {
         // an old rate is better than a made-up one
         return cached

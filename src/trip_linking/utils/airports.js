@@ -1,6 +1,4 @@
-// Airports the globe can draw. Add more here when a trip uses a new airport code.
 export const AIRPORTS = {
-  // East Africa
   NBO: { city: "Nairobi", name: "Nairobi Jomo Kenyatta", lat: -1.3192, lon: 36.9278 },
   MBA: { city: "Mombasa", name: "Mombasa Moi International", lat: -4.0348, lon: 39.5942 },
   KIS: { city: "Kisumu", name: "Kisumu International", lat: -0.0862, lon: 34.7289 },
@@ -10,7 +8,6 @@ export const AIRPORTS = {
   JRO: { city: "Kilimanjaro", name: "Kilimanjaro International", lat: -3.4294, lon: 37.0745 },
   ZNZ: { city: "Zanzibar", name: "Abeid Amani Karume International", lat: -6.222, lon: 39.2249 },
   ADD: { city: "Addis Ababa", name: "Addis Ababa Bole", lat: 8.9779, lon: 38.7993 },
-  // Rest of Africa
   JNB: { city: "Johannesburg", name: "Johannesburg O. R. Tambo", lat: -26.1392, lon: 28.246 },
   CPT: { city: "Cape Town", name: "Cape Town International", lat: -33.9715, lon: 18.6021 },
   LOS: { city: "Lagos", name: "Murtala Muhammed International", lat: 6.5774, lon: 3.3212 },
@@ -18,7 +15,6 @@ export const AIRPORTS = {
   CAI: { city: "Cairo", name: "Cairo International", lat: 30.1219, lon: 31.4056 },
   LUN: { city: "Lusaka", name: "Kenneth Kaunda International", lat: -15.3308, lon: 28.4526 },
   HRE: { city: "Harare", name: "Robert Gabriel Mugabe International", lat: -17.9318, lon: 31.0928 },
-  // Middle East, Europe, Asia, Americas
   DXB: { city: "Dubai", name: "Dubai International", lat: 25.2532, lon: 55.3657 },
   AUH: { city: "Abu Dhabi", name: "Zayed International", lat: 24.4331, lon: 54.6511 },
   DOH: { city: "Doha", name: "Hamad International", lat: 25.2731, lon: 51.6081 },
@@ -46,9 +42,9 @@ const CALLSIGN_PREFIX = {
   J9: "JZR", G9: "ABY", WY: "OMA", RJ: "RJA", MK: "MAU", FA: "SFR", ZA: "SKY",
 };
 
-// "BA 65" or "BA65" -> "BAW65". OpenSky identifies aircraft by callsign.
 export function flightToCallsign(flight) {
   const clean = flight.replace(/\s+/g, "").toUpperCase();
+  if (/^[A-Z]{3}\d/.test(clean)) return clean;
   const code = clean.slice(0, 2);
   const number = clean.slice(2);
   return (CALLSIGN_PREFIX[code] || code) + number;

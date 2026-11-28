@@ -4,4 +4,4 @@ psycopg[binary]
 PyJWT
 bcrypt
 python-dotenv
-fast-flights
+fast-flights>=3,<4

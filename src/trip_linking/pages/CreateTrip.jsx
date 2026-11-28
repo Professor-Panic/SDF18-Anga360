@@ -3,30 +3,11 @@ import { Link } from "react-router-dom";
 import InviteSection from "../components/InviteSection";
 import { useTrips } from "../context/tripsContext";
 import { FLIGHT_LOOKUP } from "../data/mockTrips";
-import { AIRPORTS } from "../utils/airports";
+import AirportPicker from "../components/AirportPicker";
 import { formatDate, todayISO } from "../utils/format";
 
-const AIRPORT_OPTIONS = Object.entries(AIRPORTS).sort((a, b) =>
-  `${a[1].city}${a[0]}`.localeCompare(`${b[1].city}${b[0]}`),
-);
-
-function AirportSelect({ id, label, value, onChange, disabled }) {
-  return (
-    <div className="tl-field">
-      <label htmlFor={id}>{label}</label>
-      <select id={id} value={value} disabled={disabled} onChange={(e) => onChange(e.target.value)}>
-        <option value="">Not sure / skip</option>
-        {AIRPORT_OPTIONS.map(([code, airport]) => (
-          <option key={code} value={code}>
-            {airport.city} ({code}) · {airport.name}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-}
-
-const FLIGHT_PATTERN = /^([A-Z0-9]{2})\s?(\d{1,4}[A-Z]?)$/;
+// Ticket number ("BA 65": 2-character airline code) or Airplane call sign.
+const FLIGHT_PATTERN = /^([A-Z0-9]{2}|[A-Z]{3})\s?(\d{1,4}[A-Z]?)$/;
 
 function parseFlightNumber(raw) {
   const match = raw.trim().toUpperCase().match(FLIGHT_PATTERN);
@@ -38,7 +19,7 @@ function validate({ flightNumber, date }) {
   if (!flightNumber.trim()) {
     errors.flightNumber = "Enter the flight number, for example BA 65.";
   } else if (!parseFlightNumber(flightNumber)) {
-    errors.flightNumber = "Flight number should be an airline code followed by digits, for example BA 65.";
+    errors.flightNumber = "Flight number should be an airline code followed by digits, for example BA 65 or BAW65.";
   }
   if (!date) {
     errors.date = "Choose the date of the flight.";
@@ -169,14 +150,14 @@ export default function CreateTrip() {
             </div>
 
             <div className="tl-form-grid">
-              <AirportSelect
+              <AirportPicker
                 id="origin-code"
                 label="Departing from (optional)"
                 value={originCode}
                 disabled={Boolean(created)}
                 onChange={setOriginCode}
               />
-              <AirportSelect
+              <AirportPicker
                 id="destination-code"
                 label="Arriving at (optional)"
                 value={destinationCode}

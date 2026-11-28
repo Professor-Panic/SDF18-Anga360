@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { getAccessToken, getOpenSkyData } from "../../live_flight_info/opensky";
+import { getOpenSkyData } from "../../live_flight_info/opensky";
 import { AIRPORTS, distanceKm, flightToCallsign } from "../utils/airports";
 
 // Each check costs OpenSky credits, so we only check every 2 minutes.
@@ -32,15 +32,6 @@ function boxAround(lat, lon) {
     lomin: lon - NEAR_PLANE_BOX,
     lomax: lon + NEAR_PLANE_BOX,
   };
-}
-
-// The OpenSky token lasts 30 minutes; reuse it instead of asking every 2 minutes.
-let cachedToken = null;
-async function token() {
-  if (!cachedToken || cachedToken.expires < Date.now()) {
-    cachedToken = { value: await getAccessToken(), expires: Date.now() + 25 * 60 * 1000 };
-  }
-  return cachedToken.value;
 }
 
 // ---- last sighting, kept per trip so a reload (or the plane vanishing) doesn't lose it ----
@@ -105,7 +96,8 @@ export function useLiveFlight({ tripId, flightNumber, originCode, destinationCod
 
     async function check() {
       try {
-        const planes = await getOpenSkyData(await token(), box, "states");
+        // callsign lets the backend look this one flight up directly (adsb.lol first, OpenSky as the fallback)
+        const planes = await getOpenSkyData({ ...box, callsign }, "states");
         if (stopped) return;
 
         // If two aircraft share a callsign, prefer the one that is flying.

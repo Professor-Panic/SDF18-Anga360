@@ -39,6 +39,12 @@ function ScrollReveal({ children, delay = 0 }) {
 // "ET 305" if we know the number, otherwise just the airline code ("ET").
 const flightLabel = (f) => f.flightNo || f.airlineCode || "";
 
+// "2h 00m" -> "2h" (the card has little room, so drop minutes that are zero).
+const short = (t) => t.replace(/ 00m$/, "");
+
+// "None" for a direct flight, "—" when the layover length isn't known.
+const layoverLabel = (t) => (t.layoverMinutes === 0 ? "None" : t.layoverTime ?? "—");
+
 // 1 when the plane lands the next day (shown as "+1" next to the arrival time).
 function dayShift(dep, arr) {
   if (!dep || !arr) return 0;
@@ -62,6 +68,14 @@ function TripRow({ label, trip }) {
           {trip.duration && <div style={{ fontSize: "12px", color: "#64748b" }}>{trip.duration}</div>}
           <div className="line-bar" />
           <div style={{ fontSize: "12px", color: "#64748b" }}>{trip.stops}</div>
+          {trip.flyingTime && trip.layoverTime && (
+            <div
+              title={`${trip.flyingTime} flying + ${trip.layoverTime} layover`}
+              style={{ fontSize: "12px", color: "#64748b", whiteSpace: "nowrap" }}
+            >
+              {short(trip.flyingTime)} + {short(trip.layoverTime)} layover
+            </div>
+          )}
         </div>
         <div>
           <div className="time-big">
@@ -362,7 +376,12 @@ export default function FlightSearchApp({
                 <div className="details-card-header">
                   <h2>{selectedFlight.roundTrip ? "Outbound" : "Flight"} · {selectedFlight.outboundDate}</h2>
                   <span className="details-meta">
-                    {[selectedFlight.duration && `Total ${selectedFlight.duration}`, selectedFlight.stops]
+                    {[
+                      selectedFlight.duration && `Total ${selectedFlight.duration}`,
+                      selectedFlight.stops,
+                      selectedFlight.flyingTime && selectedFlight.layoverTime &&
+                        `${selectedFlight.flyingTime} flying + ${selectedFlight.layoverTime} layover`,
+                    ]
                       .filter(Boolean)
                       .join(" · ")}
                   </span>
@@ -379,6 +398,8 @@ export default function FlightSearchApp({
                       {[
                         selectedFlight.inbound.duration && `Total ${selectedFlight.inbound.duration}`,
                         selectedFlight.inbound.stops,
+                        selectedFlight.inbound.flyingTime && selectedFlight.inbound.layoverTime &&
+                          `${selectedFlight.inbound.flyingTime} flying + ${selectedFlight.inbound.layoverTime} layover`,
                       ]
                         .filter(Boolean)
                         .join(" · ")}
@@ -426,18 +447,6 @@ export default function FlightSearchApp({
               >
                 Continue to provider
               </button>
-
-              {selectedFlight.bookingUrl && (
-                <a
-                  className="btn btn-outline-blue btn-full"
-                  href={selectedFlight.bookingUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ textAlign: "center", textDecoration: "none" }}
-                >
-                  See this search on Google Flights
-                </a>
-              )}
 
               <button
                 className="btn btn-outline-blue btn-full"
@@ -636,8 +645,16 @@ export default function FlightSearchApp({
                         <span>{f.departure}</span>
                       </div>
                       <div className="spec-row">
-                        <span>Duration</span>
+                        <span>Total time</span>
                         <span>{f.duration ?? "—"}</span>
+                      </div>
+                      <div className="spec-row">
+                        <span>Flight time</span>
+                        <span>{f.flyingTime ?? "—"}</span>
+                      </div>
+                      <div className="spec-row">
+                        <span>Layover time</span>
+                        <span>{layoverLabel(f)}</span>
                       </div>
                       <div className="spec-row">
                         <span>Stops</span>
@@ -652,6 +669,14 @@ export default function FlightSearchApp({
                           <span>Return</span>
                           <span>
                             {f.inbound.departure} → {f.inbound.arrival} · {f.inbound.stops}
+                          </span>
+                        </div>
+                      )}
+                      {f.inbound && (
+                        <div className="spec-row">
+                          <span>Return flight · layover</span>
+                          <span>
+                            {f.inbound.flyingTime ?? "—"} · {layoverLabel(f.inbound)}
                           </span>
                         </div>
                       )}

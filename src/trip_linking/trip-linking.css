@@ -723,3 +723,76 @@
   opacity: 0.5;
   cursor: default;
 }
+
+/* Airport picker (searchable list) */
+.tl-combo__box {
+  position: relative;
+}
+.tl-combo input {
+  padding-right: 36px;
+}
+.tl-combo input:focus {
+  outline: 2px solid var(--tl-blue);
+  outline-offset: 1px;
+}
+.tl-combo__clear {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--tl-muted);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.tl-combo__clear:hover {
+  background: var(--tl-blue-soft);
+  color: var(--tl-blue);
+}
+.tl-combo__list {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 240px;
+  margin: 0;
+  padding: 4px;
+  overflow-y: auto;
+  list-style: none;
+  background: var(--tl-card);
+  border: 1px solid var(--tl-line);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(19, 29, 58, 0.14);
+}
+.tl-combo__option {
+  display: grid;
+  gap: 1px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.tl-combo__option strong {
+  font-size: 0.88rem;
+  color: var(--tl-ink);
+}
+.tl-combo__option span {
+  font-size: 0.75rem;
+  color: var(--tl-muted);
+}
+.tl-combo__option.is-active {
+  background: var(--tl-blue-soft);
+}
+.tl-combo__option[aria-selected="true"] strong {
+  color: var(--tl-blue);
+}
+.tl-combo__empty {
+  padding: 10px;
+  font-size: 0.85rem;
+  color: var(--tl-muted);
+}

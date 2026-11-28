@@ -6,7 +6,7 @@ from datetime import date, datetime
 
 import psycopg
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -19,6 +19,9 @@ load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 
 from auth import create_token, get_current_user, hash_password, verify_password  # noqa: E402
 from db import get_db  # noqa: E402
+from services.http_client import UpstreamError  # noqa: E402
+from services.opensky import query as opensky_query  # noqa: E402
+from services.rates import get_rates  # noqa: E402
 from services.flight_service import get_live_flights  # noqa: E402
 
 
@@ -31,12 +34,22 @@ async def lifespan(_app):
 
 app = FastAPI(lifespan=lifespan)
 
+
+CORS_ORIGINS = [o.strip().rstrip("/") for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"http://(localhost|127\.0\.0\.1):\d+",
+    allow_origins=CORS_ORIGINS,
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1):\d+", # Localhost stays allowed so `npm run dev` keeps working.
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# I think this is the easiest way to know the server is up
+@app.get("/health")
+def health():
+    return {"ok": True}
 
 
 # ---------- one error shape for everything: {"error": "..."} ----------
@@ -60,9 +73,7 @@ def error(message, status):
 # ---------- accounts ----------
 
 EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-# bcrypt silently ignores everything past 72 bytes, so refuse longer passwords
 MAX_PW_BYTES = 72
-# used when the email doesn't exist, so "no such user" takes as long as "wrong password"
 DUMMY_HASH = hash_password("not-a-real-password")
 
 
@@ -88,9 +99,6 @@ def signup(body: SignupBody, db=Depends(get_db)):
         raise HTTPException(400, "Enter a valid email address")
     if len(body.password) < 8:
         raise HTTPException(400, "Password must be at least 8 characters")
-    if len(body.password.encode()) > MAX_PW_BYTES:
-        raise HTTPException(400, "Password is too long (72 bytes max)")
-
     try:
         user = db.execute(
             """INSERT INTO users (full_name, email, password_hash)
@@ -158,7 +166,7 @@ def flights(
 
     try:
         data = get_live_flights(origin, destination, date, return_date, cabin)
-    except Exception as e:  # Google changed its format, got blocked, network down, ...
+    except Exception as e:
         detail = (
             getattr(e, "error", None)
             or getattr(getattr(e, "response", None), "text", None)
@@ -172,34 +180,38 @@ def flights(
     return data
 
 
-# ---------- trip linking ----------
-#
-# A "trip" is a flight a traveller is being collected from. There is no trips table: a trip is
-# every invite that one traveller (creator_id) made for the same flight number + date, so the
-# invites table carries the flight details and the role the invite is for.
-#
-#   POST   /api/invites                       traveller: new 15-minute, single-use code for a trip
-#   POST   /api/invites/redeem                picker-upper / driver: join with a code
-#   GET    /api/trips                         every trip I'm on, with people, status, shared locations
-#   POST   /api/trips/{trip_id}/payload       send a status ("landed", "out") or a location
-#   DELETE /api/trips/{trip_id}/location/{kind}   stop sharing a location ("flight" or "personal")
-#
-# Everything shared between people goes through linked_trip_data.payload (json):
-#   {"type": "status",   "status": "landed" | "out"}
-#   {"type": "location", "kind": "flight" | "personal", "lat": .., "lon": .., ...}
-#   {"type": "flight_visibility", "hidden": true | false}   traveller only: hide the live plane
-#                                                           from the picker-upper and driver until landed
-# receiver_id is left NULL, meaning "everyone on this trip". invite_code is the sender's own link
-# to the trip (the code they redeemed, or their newest code if they are the traveller).
+# ---------- other services, called from here so keys and tokens stay on the server ----------
 
-ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"  # no 0/O or 1/I/L look-alikes
+@app.get("/api/opensky/{kind}")
+def opensky(kind: str, request: Request, _user_id: int = Depends(get_current_user)):
+    try:
+        return opensky_query(kind, dict(request.query_params))
+    except UpstreamError as e:
+        return error(e.message, e.status)
+
+
+# Exchange rates
+@app.get("/api/rates")
+def rates():
+    try:
+        return get_rates()
+    except UpstreamError as e:
+        return error(e.message, e.status)
+
+
+
+ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"  
 INVITEE_ROLES = ("picker-upper", "driver")
-FLIGHT_NO = re.compile(r"^([A-Z0-9]{2})(\d{1,4}[A-Z]?)$")
-TRIP_ID = re.compile(r"^(\d+)-([A-Z0-9]{3,7})-(\d{4}-\d{2}-\d{2})$")
+# Ticket number: 2-character IATA airline code + digits ("BA 65", "KQ 101", "W3 120").
+# OpenSky callsign: 3-letter ICAO airline code + digits ("BAW65", "KQA100"). The third
+# character is always a letter, so the two patterns can never match the same text.
+FLIGHT_NO = re.compile(r"^([A-Z0-9]{2}|[A-Z]{3})(\d{1,4}[A-Z]?)$")
+# 3-letter code + up to 4 digits + 1 letter = 8 characters at most
+TRIP_ID = re.compile(r"^(\d+)-([A-Z0-9]{3,8})-(\d{4}-\d{2}-\d{2})$")
 
 
 def ensure_schema():
-    """Adds the columns trip linking needs. Safe to run every start-up (also in db/trip_linking.sql)."""
+    """Adds the columns trip linking needs. """
     try:
         with psycopg.connect(os.environ["DATABASE_URL"]) as db:
             db.execute(
@@ -211,15 +223,14 @@ def ensure_schema():
                      ADD COLUMN IF NOT EXISTS role varchar"""
             )
             db.execute("ALTER TABLE linked_trip_data ALTER COLUMN created_at SET DEFAULT now()")
-            # receiver_id NULL means "everyone on the trip", so the column must allow NULL
+            # receiver_id NULL means "everyone on the trip"(all three are connected)
             db.execute("ALTER TABLE linked_trip_data ALTER COLUMN receiver_id DROP NOT NULL")
             db.commit()
-    except Exception as e:  # don't stop the server; the routes will say what is missing
+    except Exception as e: 
         print("ensure_schema failed:", e)
 
 
 def parse_flight(raw):
-    """' ba 65 ' -> 'BA 65', or None if it isn't an airline code + number."""
     match = FLIGHT_NO.match(re.sub(r"\s+", "", raw or "").upper())
     return f"{match[1]} {match[2]}" if match else None
 
@@ -265,7 +276,7 @@ def create_invite(
 ):
     flight = parse_flight(body.flight_number)
     if not flight:
-        raise HTTPException(400, "Flight number should be an airline code followed by digits, e.g. BA 65")
+        raise HTTPException(400, "Flight number should be an airline code followed by digits, e.g. BA 65 or BAW65")
     if not valid_date(body.flight_date):
         raise HTTPException(400, "The flight date must look like YYYY-MM-DD")
     if body.role not in INVITEE_ROLES:
