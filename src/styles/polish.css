@@ -176,3 +176,9 @@
     transition: none !important;
   }
 }
+
+/* 5. Gap under the flight progress card */
+/* Beats ".tl-card + .tl-two-col { margin-top: 0 }" in trip-linking.css */
+.tl-card + .tl-two-col.tl-two-col--details {
+  margin-top: 20px;
+}
