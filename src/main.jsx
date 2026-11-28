@@ -11,6 +11,7 @@ import {
   useOutletContext,
 } from 'react-router-dom';
 
+import './styles/tokens.css';
 import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
 import OfflineBanner from './components/OfflineBanner.jsx';
@@ -26,6 +27,8 @@ import RegisterPage from './auth/RegisterPage.jsx';
 import TripsProvider from './trip_linking/context/TripsProvider.jsx';
 import TripLinkingRoutes from './trip_linking/TripLinkingRoutes.jsx';
 import { HomePage } from './Home_page/home_page.jsx';
+import './styles/theme.css'; // keep last: restyles the classes above
+import './styles/polish.css'
 
 function playJetFlybySound() {
   try {

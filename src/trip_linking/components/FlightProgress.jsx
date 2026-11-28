@@ -7,7 +7,13 @@ export default function FlightProgress({ stage }) {
       <h2 id="tl-progress-title" className="tl-card__title tl-card__title--small">
         Flight progress
       </h2>
-      <ol className="tl-steps">
+      <div
+        className="tl-track"
+        data-stage={stage}
+        style={{ "--ag-pos": ((stage - 0.5) / PROGRESS_STEPS.length) * 100 }}
+      >
+        <span className="tl-plane" aria-hidden="true" />
+        <ol className="tl-steps">
         {PROGRESS_STEPS.map((label, index) => {
           const number = index + 1;
           const state = number < stage ? "done" : number === stage ? "current" : "upcoming";
@@ -28,6 +34,7 @@ export default function FlightProgress({ stage }) {
           );
         })}
       </ol>
+      </div>
     </section>
   );
 }

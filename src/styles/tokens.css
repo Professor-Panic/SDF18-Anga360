@@ -1,0 +1,55 @@
+:root {
+  --night-950: #070f2b;
+  --night-900: #0b1b4a;
+  --night-800: #0e2257;
+  --night-700: #173a86;
+
+  --sky-600: #1d5fd1;
+  --sky-500: #2f7bf0;
+  --sky-200: #bcd5fb;
+  --sky-100: #e6f0ff;
+  --sky-50: #f2f7ff;
+
+  --sun-500: #f59e0b;
+  --sun-400: #fbb740;
+  --sun-100: #fff3d6;
+  --sun-50: #fffaf0;
+
+  --ink: #0f1b3d;
+  --muted: #5a6686;
+  --line: #e1e6f1;
+  --paper: #f4f6fb;
+  --surface: #ffffff;
+
+  --ok: #176b3e;
+  --ok-soft: #e2f5e9;
+  --warn: #8a5a00;
+  --warn-soft: #fff1cc;
+  --danger: #b3261e;
+
+  --r-sm: 8px;
+  --r-md: 16px;
+  --r-lg: 28px;
+  --r-pill: 999px;
+
+  --shadow-rest: 0 1px 2px rgba(11, 27, 74, 0.06), 0 6px 18px -10px rgba(11, 27, 74, 0.18);
+  --shadow-lift: 0 18px 40px -18px rgba(11, 27, 74, 0.35);
+
+  --font-display: "Bricolage Grotesque", "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --navy: var(--night-800);
+  --blue: var(--sky-600);
+  --blue-hover: #174ea6;
+  --bg: var(--paper);
+  --border: var(--line);
+  --text: var(--ink);
+
+  --tl-blue: var(--sky-600);
+  --tl-blue-dark: #174ea6;
+  --tl-blue-soft: var(--sky-100);
+  --tl-ink: var(--ink);
+  --tl-muted: var(--muted);
+  --tl-line: var(--line);
+  --tl-radius: var(--r-md);
+}

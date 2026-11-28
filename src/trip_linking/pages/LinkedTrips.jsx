@@ -94,11 +94,12 @@ export default function LinkedTrips() {
         <h2 className="tl-h2">Your trips ({trips.length})</h2>
 
         {trips.length === 0 && loading ? (
-          <p className="tl-empty">Loading your trips…</p>
+          <p className="tl-empty">Tafadhali subiri… Loading your trips</p>
         ) : trips.length === 0 ? (
-          <p className="tl-empty">
-            You are not linked to any trips yet. Create a trip, or join one with an invite code.
-          </p>
+          <div className="tl-empty ag-empty">
+            <h3>Hakuna safari bado</h3>
+            <p>You are not linked to any trips yet. Create a trip, or join one with an invite code.</p>
+          </div>
         ) : (
           <ul className="tl-trip-list">
             {trips.map((trip) => (

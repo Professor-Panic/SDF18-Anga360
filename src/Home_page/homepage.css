@@ -1,117 +1,144 @@
 /* =====================================================
-   GLOBAL
+   HOMEPAGE: night-to-dawn hero, search card straddling the horizon
+   Colors, radii and fonts come from src/styles/tokens.css
 ===================================================== */
 
-html, body, #root {
-    margin: 0;
-    width: 100%;
-    min-height: 100%;
-    font-family: 'Inter', sans-serif;
-}
+html, body, #root { margin: 0; width: 100%; min-height: 100%; }
+* { box-sizing: border-box; }
 
-* {
-    box-sizing: border-box;
-}
+.class-homepage { display: flex; flex-direction: column; }
 
-/* =====================================================
-   HOMEPAGE LAYOUT
-===================================================== */
-
-.class-homepage {
-    display: flex;
-    flex-direction: column;
-}
-
-/* =====================================================
-   HERO / MIDDLE AREA
-===================================================== */
-
+/* ---------- Hero ---------- */
 .class-homepage-middle-area {
-    background-color: #0F2A6B;
+    position: relative;
+    isolation: isolate;
     width: 100%;
-    flex: 1;
-    padding: 72px 64px;
+    padding: 84px max(24px, calc((100% - 1160px) / 2)) 0;
 }
 
-/* The heading used to have a fixed height (112px) that two lines of 46px text overflow once
-   line-height is 1.5, so it ran into the paragraph below. Let it size itself and put real
-   space between heading, paragraph and search card. */
+/* sky: deep navy up top, a thin sunrise glow at the horizon, faint stars */
+.class-homepage-middle-area::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+        radial-gradient(90% 55% at 78% 100%, rgba(245, 158, 11, 0.34) 0%, rgba(245, 158, 11, 0) 70%),
+        radial-gradient(60% 80% at 15% 0%, rgba(47, 123, 240, 0.35) 0%, rgba(47, 123, 240, 0) 70%),
+        radial-gradient(1.4px 1.4px at 12% 22%, #fff 99%, transparent),
+        radial-gradient(1.2px 1.2px at 31% 64%, rgba(255, 255, 255, .8) 99%, transparent),
+        radial-gradient(1.6px 1.6px at 47% 18%, #fff 99%, transparent),
+        radial-gradient(1.2px 1.2px at 63% 40%, rgba(255, 255, 255, .7) 99%, transparent),
+        radial-gradient(1.4px 1.4px at 88% 16%, #fff 99%, transparent),
+        radial-gradient(1.2px 1.2px at 74% 72%, rgba(255, 255, 255, .6) 99%, transparent),
+        linear-gradient(175deg, var(--night-950) 0%, var(--night-900) 55%, var(--night-700) 100%);
+}
+
 .homepage-hero-content {
-    color: white;
-    font-size: 46px;
-    font-weight: bolder;
-    line-height: 1.15;
-    max-width: 760px;
-    margin: 0 0 28px 0;
+    position: relative;
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: clamp(36px, 5vw, 62px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.04;
+    max-width: 640px;
+    margin: 0 0 22px 0;
 }
 
 .homepage-hero-explanation {
-    color: #E8F0FE;
+    position: relative;
+    color: #cbd9f6;
     font-size: 18px;
     line-height: 1.6;
-    max-width: 700px;
-    margin: 0 0 44px 0;
+    max-width: 560px;
+    margin: 0 0 64px 0;
 }
 
-/* =====================================================
-   SEARCH CARD
-===================================================== */
+/* route illustration, top right */
+.hero-routes {
+    position: absolute;
+    top: 16px;
+    right: max(0px, calc((100% - 1160px) / 2 - 20px));
+    width: min(440px, 40vw);
+    z-index: -1;
+    overflow: visible;
+}
+.hero-globe { fill: none; stroke: #9db2e0; stroke-width: 1; opacity: .28; vector-effect: non-scaling-stroke; }
+.hero-arc {
+    fill: none;
+    stroke: url(#routeFade);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: 6 8;
+    opacity: .9;
+}
+.hero-pins circle { fill: var(--sky-200); }
+.hero-origin { fill: var(--sun-500); }
+.hero-origin-pulse { fill: var(--sun-500); opacity: .3; transform-origin: 120px 262px; }
+.hero-label { fill: #dbe6ff; font: 600 12px var(--font-body); letter-spacing: .14em; }
 
+/* the one orchestrated moment: arcs draw in once on load */
+@media (prefers-reduced-motion: no-preference) {
+    .hero-arc { animation: arc-in 1.6s ease-out both; }
+    .hero-arc-2 { animation-delay: .25s; }
+    .hero-arc-3 { animation-delay: .5s; }
+    .hero-pins circle { animation: pin-in .5s ease-out 1.4s both; }
+    .hero-origin-pulse { animation: pulse 2.6s ease-out infinite; }
+}
+@keyframes arc-in { from { stroke-dasharray: 0 800; opacity: 0; } to { stroke-dasharray: 6 8; opacity: .9; } }
+@keyframes pin-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pulse { from { transform: scale(1); opacity: .45; } to { transform: scale(2.6); opacity: 0; } }
+
+/* ---------- Search card ---------- */
 .homepage-search-card {
+    position: relative;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 14px;
     width: 100%;
-    min-height: 165px;
-    height: auto;
-    border-radius: 16px;
-    background-color: white;
-    padding: 24px;
+    margin-bottom: -56px;
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    padding: 28px 30px 30px;
+    box-shadow: var(--shadow-lift);
+    border: 1px solid rgba(255, 255, 255, .6);
 }
-
-/* =====================================================
-   SEARCH FILTERS LAYOUT
-===================================================== */
 
 .homepage-search-filters {
     display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(0, 1fr);
+    grid-template-columns: 1.1fr 1.1fr 1fr 1fr 1fr auto;
     align-items: end;
-    gap: 20px;
+    gap: 14px;
     width: 100%;
 }
 
-/* =====================================================
-   INDIVIDUAL FILTER CARDS
-===================================================== */
-
-.homepage-filter-card {
-    width: 100%;
-    min-width: 0;
-}
+.homepage-filter-card { width: 100%; min-width: 0; }
 
 .homepage-filter-card-title {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
-    color: #293651;
-    margin: 0 0 8px 0;
+    color: var(--muted);
+    margin: 0 0 8px 2px;
 }
-
-/* Input container */
 
 .homepage-filter-input-container {
     width: 100%;
-    height: 44px;
-    border: 1px solid #DDE3EE;
-    border-radius: 8px;
-    background-color: white;
+    height: 52px;
+    border: 1.5px solid var(--line);
+    border-radius: var(--r-sm);
+    background-color: var(--paper);
     display: flex;
     align-items: center;
-    padding: 0 10px;
+    padding: 0 14px;
+    transition: border-color .18s, background-color .18s, box-shadow .18s;
 }
-
-/* Actual inputs and dropdowns */
+.homepage-filter-input-container:hover { border-color: var(--sky-200); }
+.homepage-filter-input-container:focus-within {
+    background-color: #fff;
+    border-color: var(--sky-600);
+    box-shadow: 0 0 0 4px rgba(29, 95, 209, 0.14);
+}
 
 .homepage-filter-card-input {
     width: 100%;
@@ -119,170 +146,159 @@ html, body, #root {
     border: none;
     outline: none;
     background-color: transparent;
-    color: #293651;
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 500;
     min-width: 0;
 }
+.homepage-filter-card-input::placeholder { color: #8b96b3; font-weight: 400; }
 
-/* Input focus effect */
-
-.homepage-filter-input-container:focus-within {
-    border-color: #1D5FD1;
-    box-shadow: 0 0 0 2px rgba(29, 95, 209, 0.1);
-}
-
-/* Search button */
-
+/* the one warm button on the page */
 .homepage-search-button {
-    background-color: #1D5FD1;
-    color: white;
-    height: 44px;
-    padding: 0 20px;
-    border-radius: 8px;
-    font-weight: bold;
+    background-color: var(--sun-500);
+    color: var(--night-900);
+    height: 52px;
+    padding: 0 28px;
+    border-radius: var(--r-pill);
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
     border: 0;
-    width: 134px;
     cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 10px 22px -12px rgba(245, 158, 11, 1);
+    transition: background-color .18s, transform .18s, box-shadow .18s;
+}
+.homepage-search-button:hover {
+    background-color: var(--sun-400);
+    transform: translateY(-1px);
+    box-shadow: 0 14px 26px -12px rgba(245, 158, 11, 1);
+}
+.homepage-search-button:active { transform: translateY(1px); }
+
+.homepage-filter-clear {
+    border: none;
+    background: none;
+    color: var(--muted);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 0 0 6px;
+}
+.homepage-filter-clear:hover { color: var(--night-800); }
+
+.homepage-search-error {
+    color: var(--danger);
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0;
 }
 
-/* =====================================================
-   WORKINGS SECTION
-===================================================== */
-
+/* ---------- How it works ---------- */
 .class-homepage-workings {
-    background-color: #F4F6FA;
-    padding: 56px 64px;
+    background: var(--paper);
+    padding: 96px max(24px, calc((100% - 1160px) / 2)) 24px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    height: 400px;
+    gap: 28px;
 }
 
 .homepage-workings-title {
     margin: 0;
-    font-size: 20px;
-    font-weight: bolder;
-    color: #0F2A6B;
+    font-family: var(--font-display);
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--night-800);
 }
 
 .homepage-working-cards {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 14px;
+    gap: 20px;
     width: 100%;
+    position: relative;
 }
-
-/* =====================================================
-   INDIVIDUAL WORKING CARDS
-===================================================== */
+/* the steps are a real sequence, so a dashed flight path links them */
+.homepage-working-cards::before {
+    content: "";
+    position: absolute;
+    left: 8%; right: 8%;
+    top: 49px;
+    border-top: 2px dashed var(--sky-200);
+    z-index: 0;
+}
 
 .homepage-working-card {
-    border-radius: 10px;
-    border: 1px solid #DDE3EE;
-    background-color: white;
-    padding: 18px;
-    height: 188px;
+    position: relative;
+    z-index: 1;
+    border-radius: var(--r-md);
+    border: 1px solid var(--line);
+    background-color: var(--surface);
+    padding: 24px;
+    box-shadow: var(--shadow-rest);
 }
 
-/* Card number */
+.homepage-working-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+
+.homepage-working-card-icon {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--night-800);
+    box-shadow: 0 0 0 6px var(--paper);
+}
+.homepage-working-card-icon svg {
+    width: 24px; height: 24px;
+    fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+/* the final step is the point of the whole flow, so it gets the sun */
+.homepage-working-card:last-child .homepage-working-card-icon { background: var(--sun-500); }
+.homepage-working-card:last-child .homepage-working-card-icon svg { stroke: var(--night-900); }
 
 .homepage-working-card-number {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #1D5FD1;
-    background-color: #E8F0FE;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    font-size: 12px;
+    margin: 0;
+    font-size: 13px;
     font-weight: 600;
-    margin: 0 0 14px 0;
+    color: var(--muted);
 }
-
-/* Card title */
 
 .homepage-working-card-title {
-    margin: 0 0 6px 0;
-    font-weight: bolder;
-    font-size: 15px;
-    color: #0F2A6B;
+    margin: 0 0 8px 0;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+    color: var(--night-800);
 }
-
-/* Card explanation */
 
 .homepage-working-card-explanation {
     margin: 0;
-    font-size: 12px;
-    color: #5B6783;
-    line-height: 1.5;
+    font-size: 15px;
+    color: var(--muted);
+    line-height: 1.6;
 }
 
-/* =====================================================
-   RESPONSIVE LAYOUT
-===================================================== */
+/* ---------- Responsive ---------- */
+@media (max-width: 1100px) {
+    .homepage-search-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .homepage-search-button { grid-column: 1 / -1; }
+    .hero-routes { opacity: .55; }
+}
 
-@media (max-width: 1000px) {
-
-
-
-    .homepage-search-filters {
-        grid-auto-flow: row;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    .homepage-working-cards {
-        grid-template-columns: 1fr;
-    }
+@media (max-width: 900px) {
+    .homepage-working-cards { grid-template-columns: 1fr; }
+    .homepage-working-cards::before { display: none; }
+    .hero-routes { display: none; }
 }
 
 @media (max-width: 600px) {
-
-    .class-homepage-middle-area {
-        padding: 40px 20px;
-    }
-
-    .homepage-hero-content {
-        font-size: 32px;
-        margin-bottom: 20px;
-    }
-
-    .homepage-hero-explanation {
-        font-size: 16px;
-        margin-bottom: 32px;
-    }
-
-    .homepage-search-filters {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-
-    .class-homepage-workings {
-        padding: 40px 20px;
-    }
-
-}
-
-/* ---- search error ---- */
-
-/* optional field: a small "clear" button inside the input */
-.homepage-filter-clear {
-    border: none;
-    background: none;
-    color: #5B6783;
-    font-size: 18px;
-    line-height: 1;
-    cursor: pointer;
-    padding: 0 0 0 6px;
-}
-
-.homepage-filter-clear:hover {
-    color: #0F2A6B;
-}
-
-.homepage-search-error {
-    color: #C0392B;
-    font-size: 14px;
-    margin-top: 12px;
+    .class-homepage-middle-area { padding: 48px 20px 0; }
+    .homepage-hero-explanation { font-size: 16px; margin-bottom: 40px; }
+    .homepage-search-card { padding: 20px; border-radius: 22px; }
+    .homepage-search-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .class-homepage-workings { padding: 100px 20px 16px; }
 }
